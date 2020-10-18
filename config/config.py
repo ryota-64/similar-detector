@@ -6,6 +6,10 @@ import torch
 
 class Config(object):
 
+
+    # for prepare data
+    raw_data_path = 'data/raw_data/20200807'
+
     env = 'default'
     backbone = 'resnet18'
     classify = 'softmax'
@@ -98,8 +102,9 @@ class Config(object):
         self.lfw_root = os.path.join(root_path, self.lfw_root)
         self.lfw_test_list = os.path.join(root_path, self.lfw_test_list)
         self.checkpoints_path = os.path.join(root_path, self.checkpoints_path)
-        self.num_classes = len([dir_name for dir_name in os.listdir(self.train_root)
-                                if pathlib.Path(self.train_root).joinpath(dir_name).is_dir()])
+        # temp comment out
+        # self.num_classes = len([dir_name for dir_name in os.listdir(self.train_root)
+        #                         if pathlib.Path(self.train_root).joinpath(dir_name).is_dir()])
         self.mean_files_path = os.path.join(root_path, self.mean_files_path)
         self.distance_path = os.path.join(root_path, self.distance_path)
         self.feature_path = os.path.join(root_path, self.feature_path)
