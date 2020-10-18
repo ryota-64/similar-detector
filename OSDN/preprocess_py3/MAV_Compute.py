@@ -60,7 +60,7 @@ import pathlib
 import shutil
 
 from OSDN.openmax_utils import getlabellist, get_train_labels
-from config.config import Config
+from config import Config
 
 opt = Config()
 featurefilepath = opt.feature_path

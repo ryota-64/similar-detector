@@ -4,7 +4,7 @@ from torch.nn import DataParallel
 
 from OSDN.evt_fitting import *
 from OSDN.openmax_utils import *
-from config.config import Config
+from config import Config
 from data.dataset import Dataset
 from models import *
 from visualize_output import create_mean_graph, show_histgram

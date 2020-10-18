@@ -15,7 +15,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils import data
 
 from OSDN.openmax_utils import get_train_labels
-from config.config import Config
+from config import Config
 from data import Dataset
 from models import *
 from test import *

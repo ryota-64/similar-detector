@@ -27,7 +27,7 @@ import torch
 from torch.utils import data
 from torch.nn import DataParallel
 
-from config.config import Config
+from config import Config
 from data.dataset import Dataset
 from models import *
 from OSDN.openmax_utils import getlabellist, get_train_labels
@@ -344,9 +344,9 @@ def main(argv):
     #     help="Switch for gpu computation."
     # )
     #
-    
+
     args = parser.parse_args()
-    
+
     # if args.run_quick_test:
     #     runClassifierTest(args)
 

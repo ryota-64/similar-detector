@@ -20,7 +20,7 @@ import plotly.offline as offline
 
 from data.make_file_names import load_criteria_list
 from data.dataset import Dataset
-from config.config import Config
+from config import Config
 from models import *
 
 
