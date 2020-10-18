@@ -1,10 +1,9 @@
-!.gitignore
 sandbox/*
 *.pyc
 *.pth
-data/Datasets/*
-estimate_visualize/*
 .idea/*
-data/*
+data/Datasets/*
+data/raw_data/*
 !data/**/*.py
+estimate_visualize/*
 

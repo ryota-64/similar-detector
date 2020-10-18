@@ -4,6 +4,7 @@ from logging import getLogger
 import pathlib
 
 from config import Config
+from data.prepare_data import PlateData, DynainData
 
 logger = getLogger(__name__)
 
@@ -29,6 +30,7 @@ def check_data(dynain_path, verbose=False):
 
 def get_conter_csv(dynain_path):
     conter_paths = []
+    # todo 必要なconterをconfigで指定するようにする？
     for conter_dir in dynain_path.parents[1].joinpath('conters/').iterdir():
         if conter_dir.stem[:1] != '.':
             conter_itr = conter_dir.glob('{}.csv'.format(dynain_path.stem[:-7]))
@@ -67,6 +69,7 @@ def main():
 
     print(dynains)
     # get list of data
+
 
     # extract data and save it
     pass
