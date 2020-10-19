@@ -3,6 +3,8 @@
 from logging import getLogger
 import pathlib
 
+import numpy as np
+
 from config import Config
 from data.prepare_data import PlateData, DynainData
 
@@ -69,10 +71,23 @@ def main():
 
     print(dynains)
     # get list of data
+    for dynain_path in dynains:
+        try:
+            blank_node_path = get_blank_csv(dynain_path)
+            conter_paths = get_conter_csv(dynain_path)
+            print(dynain_path, blank_node_path, conter_paths)
+            dynain_data = DynainData(dynain_path)
+            plate_data = PlateData(blank_node_path)
+            plate_data.set_dynain_data(dynain_data)
+            for conter in conter_paths:
+                plate_data.set_conter(conter.parents[0].stem, conter)
 
-
-    # extract data and save it
-    pass
+            output = plate_data.output()
+            # extract data and save it
+            # todo 一部をtest用のデータセットに保存する
+            np.save('data/Datasets/dtypeA/train/models/{}_plate_data.npy'.format(dynain_path.stem[:-7]), output)
+        except KeyError as e:
+            print(dynain_path, e)
 
 
 if __name__ == '__main__':

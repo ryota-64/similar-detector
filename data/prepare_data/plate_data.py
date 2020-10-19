@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 class PlateData:
-    def __init__(self, blank_node_csv, **kws):
+    def __init__(self, blank_node_csv):
 
         with open(blank_node_csv) as f:
             node_file_raw = pd.read_csv(f)
@@ -15,6 +15,7 @@ class PlateData:
             node_file.columns = ['node_id', 'x', 'y', 'z']
         self.node_file = node_file
         self.conters_data = {}
+        self.shell_origin = None
 
     def _read_conter_file(self, conter_csv_path):
         with open(conter_csv_path) as f:
@@ -24,22 +25,20 @@ class PlateData:
         return conter_file
 
     def set_dynain_data(self, dynain_data):
-        # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存(x,y,z）はbrankを採用
+        # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
+        # (x,y,z）はblankを採用
         shell_origin = []
-        node_file_matrix = self.node_file.as_matrix()
+        node_file_matrix = self.node_file.values
         node_dict = {node[0]: node for node in node_file_matrix}
+        print(len(list(node_dict.keys())))
         for shell in dynain_data.shells:
             # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式
             nodes = shell.nodes
 
-            #             print(self.node_file[self.node_file['node_id']==str(nodes[0].node_id)].values.astype('float64')[0][1:4])
             (x, y, z) = np.average([node_dict[str(node.node_id)].astype('float64')[1:4] for node in nodes], axis=0)
-            #             print(x,y,z)
 
-            #             (x, y, z) = np.average([ [node.x, node.y, node.z]  for node in nodes], axis=0)
             shell_origin.append([shell.shell_id, shell.normal_vector, x, y, z])
 
-        #         self.conters_data['normal_vector'] = shell_origin
         self.shell_origin = shell_origin
 
     def output(self, figsize=(20, 20)):
@@ -47,50 +46,28 @@ class PlateData:
         # conterの情報
         #         print(self.node_file)
         print(self.conters_data.keys())
-        shell_t = np.array(self.shell_origin).T
-        value = shell_t[1] / 2 + 0.5
-        x = shell_t[2]
-        y = shell_t[3]
+        ret_array = self.get_normal_vector_fig(figsize)
 
-        #         fig = plt.figure(figsize=(6,6))
-        fig = plt.figure(figsize=figsize, linewidth=0, )
+        for key in self.conters_data.keys():
+            conter_array = self.get_conter_fig(key)
+            print(conter_array.shape)
+            ret_array = np.concatenate([ret_array, conter_array], axis=2)
 
-        ax = fig.add_axes((0, 0, 1, 1))
-        ax.axis("off")
-        sc = ax.scatter(x, y, c=value)
-        ax.set_aspect('equal')
-        return fig
-        #         self._fig2array(fig)
-        #         print(img.shape)
-        plt.close(fig)
+        print(ret_array.shape)
+        return ret_array
 
-    @staticmethod
-    def fig2array(fig, figsize=(20, 20)):
+    def fig2array(self, fig):
 
         buf = io.BytesIO()  # インメモリのバイナリストリームを作成
-        fig.savefig(buf, format="png", dpi=180)  # matplotlibから出力される画像のバイナリデータをメモリに格納する.
+        fig.savefig(buf, format="jpeg", dpi=180)  # matplotlibから出力される画像のバイナリデータをメモリに格納する.
         buf.seek(0)  # ストリーム位置を先頭に戻る
         img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)  # メモリからバイナリデータを読み込み, numpy array 形式に変換
         buf.close()  # ストリームを閉じる(flushする)
         img = cv2.imdecode(img_arr, 1)  # 画像のバイナリデータを復元する
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # cv2.imread() はBGR形式で読み込むのでRGBにする.
-        plt.close(fig)
-        plt.show()
-        fig2 = plt.figure(figsize=figsize, linewidth=0)
-        ax = fig2.add_axes((0, 0, 1, 1))
-        #         ax.tick_params(labelbottom=False,
-        #                labelleft=False,
-        #                labelright=False,
-        #                labeltop=False)
-        #         ax.tick_params(bottom=False,
-        #                left=False,
-        #                right=False,
-        #                top=False)
-        ax.axis("off")
-        plt.imshow(img)
-        plt.savefig('hoge.jpg')
+        return img
 
-    def get_normal_vecter_fig(self, figsize=(20,20)):
+    def get_normal_vector_fig(self, figsize=(20, 20)):
         shell_t = np.array(self.shell_origin).T
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
@@ -100,14 +77,16 @@ class PlateData:
 
         ax = fig.add_axes((0, 0, 1, 1))
         ax.axis("off")
-        sc = ax.scatter(x, y, c=value)
+        ax.scatter(x, y, c=value)
         ax.set_aspect('equal')
-        return fig
+        ret_array = self.fig2array(fig)
+        plt.close(fig)
+        return ret_array
 
-    def get_conter_fig(self, conter_name, figsize=(20,20)):
+    def get_conter_fig(self, conter_name, figsize=(20, 20)):
 
         conter_data = self.get_plate_conter(conter_name)
-
+        # todo conterの値を画像に反映する必要がある
         value = conter_data[1]
         x = conter_data[2]
         y = conter_data[3]
@@ -116,11 +95,11 @@ class PlateData:
 
         ax = fig.add_axes((0, 0, 1, 1))
         ax.axis("off")
-        sc = ax.scatter(x, y, c=value, vmin=np.min(value), vmax=np.max(value))
+        ax.scatter(x, y, c=value, vmin=np.min(value), vmax=np.max(value))
         ax.set_aspect('equal')
-        plt.colorbar(sc)
-
-    #         self.
+        ret_array = self.fig2array(fig)
+        plt.close(fig)
+        return ret_array
 
     def set_conter(self, conter_name, conter_csv_path):
         self.conters_data[conter_name] = self._read_conter_file(conter_csv_path)
@@ -140,22 +119,6 @@ class PlateData:
                 ]
         return data
 
-    #     @staticmethod
-
-    #     # 一旦内部メソッド、今後staticmethodに変えるかも
-    #     def as_matrix_output(self):
-    #         shell_t = np.array(self.shell_origin).T
-    #         value = shell_t[1] / 2 + 0.5
-    #         x  = shell_t[2]
-    #         y = shell_t[3]
-
-    #         xmax = np.max(x)
-    #         xmin = np.min(x)
-    #         ymax = np.max(y)
-    #         ymin = np.min(y)
-
-    #         brank = np.zeros((xmax - xmin
-
     # PlateDataのインスタンス同士でのnormal_vectorの引き算
     @staticmethod
     def calc_normal_vector_diff(p1, p2, figsize=(20, 20), save_name=None):
@@ -172,7 +135,7 @@ class PlateData:
         fig = plt.figure(figsize=figsize)
 
         ax = fig.add_subplot(1, 1, 1)
-        sc = ax.scatter(x, y, c=diff_value)
+        ax.scatter(x, y, c=diff_value)
         ax.set_title('normal_vector_diff')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -255,7 +218,7 @@ class PlateData:
         fig = plt.figure(figsize=figsize)
 
         ax = fig.add_subplot(1, 1, 1)
-        sc = ax.scatter(x, y, c=value)
+        ax.scatter(x, y, c=value)
         ax.set_title('normal_vector')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -304,13 +267,11 @@ class Shell:
         x1, y1, z1 = p1
         x2, y2, z2 = p2
 
-        ux, uy, uz = u = [x1 - x0, y1 - y0, z1 - z0]
-        vx, vy, vz = v = [x2 - x0, y2 - y0, z2 - z0]
-
-        u_cross_v = [uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx] / np.power(
+        ux, uy, uz = [x1 - x0, y1 - y0, z1 - z0]
+        vx, vy, vz = [x2 - x0, y2 - y0, z2 - z0]
+        u_cross_v = np.array([uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx]) / np.power(
             ((uy * vz - uz * vy) ** 2 + (uz * vx - ux * vz) ** 2 + (ux * vy - uy * vx) ** 2), 1 / 2)
 
-        point = np.array(p0)
         normal = np.array(u_cross_v)
         return normal
 
@@ -319,7 +280,7 @@ class DynainData:
     def __init__(self, file_path):
         with open(file_path) as f:
             df = pd.read_csv(f)
-        matrix = df.as_matrix()
+        matrix = df.values
         asterisk_indexes = list(df[df['*KEYWORD'].str.startswith('*')].index)
         #         thickness_index = df[df['*KEYWORD']=='*ELEMENT_SHELL_THICKNESS'].index.values[0]
         #         initial_atress_index = df[df['*KEYWORD']=='*INITIAL_STRESS_SHELL'].index.values[0]
@@ -333,17 +294,15 @@ class DynainData:
         self.shells = [Shell(*self.split_shell_str_a(shell_data[i][0]), *self.split_shell_str_b(shell_data[i + 1][0]))
                        for i in range(0, len(shell_data), 2)]
 
-        ## todo それ以外のやつはまだ
+        # todo それ以外のやつはまだ
 
     def split_node_str(self, node_str):
-        return int(node_str[0:8]), float(node_str[8:24]), float(node_str[24:40]), float(node_str[40:56]), node_str[
-                                                                                                          63:64], node_str[
-                                                                                                                  -1:]
+        return int(node_str[0:8]), float(node_str[8:24]), float(node_str[24:40]), float(node_str[40:56]), \
+               node_str[63:64], node_str[-1:]
 
     def split_shell_str_a(self, shell_str):
         shell_nodes = [self.nodes[node_id] for node_id in
                        [int(shell_str[16:24]), int(shell_str[24:32]), int(shell_str[32:40]), int(shell_str[40:48])]]
-        #         nodes = [node for node in self.nodes if node.node_id in [int(shell_str[16:24]),  int(shell_str[24:32]), int(shell_str[32:40]), int(shell_str[40:48])]]
         return int(shell_str[0:8]), int(shell_str[8:16]), shell_nodes
 
     def split_shell_str_b(self, node_str):
