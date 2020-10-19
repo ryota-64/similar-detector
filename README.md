@@ -49,7 +49,8 @@ python make_file_names.py
 
 gpu環境で
 ```bash
-docker run --gpus all -t -v /home/r_takenaka/arcface-pytorch/:/workspace/arcface-pytorch --name arcface -d -p 8097:8097 pytorch bash
+docker build -t similar ./docker
+docker run --gpus all -t -v $PWD:/workspace/similar-detector --name similar -d -p 8097:8097 similar  bash
 docker exec -it arcface bash
 ```
 docker 内で

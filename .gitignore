@@ -2,7 +2,7 @@ sandbox/*
 *.pyc
 *.pth
 .idea/*
-data/Datasets/*
+data/DataSets/*
 data/raw_data/*
 !data/**/*.py
 estimate_visualize/*

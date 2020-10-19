@@ -59,7 +59,7 @@ class PlateData:
     def fig2array(self, fig):
 
         buf = io.BytesIO()  # インメモリのバイナリストリームを作成
-        fig.savefig(buf, format="jpeg", dpi=180)  # matplotlibから出力される画像のバイナリデータをメモリに格納する.
+        fig.savefig(buf, format="jpeg", dpi=10)  # matplotlibから出力される画像のバイナリデータをメモリに格納する.
         buf.seek(0)  # ストリーム位置を先頭に戻る
         img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)  # メモリからバイナリデータを読み込み, numpy array 形式に変換
         buf.close()  # ストリームを閉じる(flushする)

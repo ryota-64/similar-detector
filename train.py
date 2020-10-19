@@ -16,7 +16,7 @@ from torch.utils import data
 
 from OSDN.openmax_utils import get_train_labels
 from config import Config
-from data import Dataset
+from data import DataSet
 from models import *
 from test import *
 from utils import Visualizer, view_model
@@ -40,13 +40,13 @@ def main(args):
         device = 'cpu'
     print('device: {}'.format(device))
 
-    train_dataset = Dataset(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
+    train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
     trainloader = torch.utils.data.DataLoader(train_dataset,
                                               batch_size=opt.train_batch_size,
                                               shuffle=True,
                                               num_workers=opt.num_workers)
 
-    val_dataset = Dataset(opt.train_root, opt.val_list, phase='val', input_shape=opt.input_shape)
+    val_dataset = DataSet(opt.train_root, opt.val_list, phase='val', input_shape=opt.input_shape)
     val_loader = torch.utils.data.DataLoader(val_dataset,
                                              batch_size=opt.test_batch_size,
                                              shuffle=True,
@@ -60,11 +60,11 @@ def main(args):
         criterion = torch.nn.CrossEntropyLoss()
 
     if opt.backbone == 'resnet18':
-        model = resnet_face18(use_se=opt.use_se)
+        model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
     elif opt.backbone == 'resnet34':
-        model = resnet34()
+        model = resnet34(opt.input_shape[0])
     elif opt.backbone == 'resnet50':
-        model = resnet50()
+        model = resnet50(opt.input_shape[0])
     else:
         raise TypeError('not match model type')
     model.to(device)

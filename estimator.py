@@ -19,16 +19,16 @@ import plotly.offline as offline
 # offline.init_notebook_mode()
 
 from data.make_file_names import load_criteria_list
-from data.dataset import Dataset
+from data.dataset import DataSet
 from config import Config
 from models import *
 
 
 parser = argparse.ArgumentParser(description='metric estimator')
-parser.add_argument('--train-data-path', type=str, default='data/Datasets/invoices/train/',
-                    help='input train data path (default: data/Datasets/invoices/train/)')
-parser.add_argument('--estimate-data-path', type=str, default='data/Datasets/invoices/test/',
-                    help='input estimate data path (default: data/Datasets/invoices/test/)')
+parser.add_argument('--train-data-path', type=str, default='data/DataSets/invoices/train/',
+                    help='input train data path (default: data/DataSets/invoices/train/)')
+parser.add_argument('--estimate-data-path', type=str, default='data/DataSets/invoices/test/',
+                    help='input estimate data path (default: data/DataSets/invoices/test/)')
 parser.add_argument('--load-weight-path', type=str, default='checkpoints/resnet18_40.pth',
                     help='load weight data path (default: checkpoints/resnet18_40.pth')
 
@@ -59,7 +59,7 @@ def main():
     model.eval()
     global args
 
-    train_dataset = Dataset(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
+    train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
     trainloader = data.DataLoader(train_dataset,
                                   batch_size=opt.train_batch_size,
                                   shuffle=True,
@@ -67,7 +67,7 @@ def main():
 
     centroid_map = create_centroid(model, trainloader)
 
-    test_dataset = Dataset(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
+    test_dataset = DataSet(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
     test_loader = data.DataLoader(test_dataset,
                                  batch_size=1,
                                   # batch_size=opt.test_batch_size,

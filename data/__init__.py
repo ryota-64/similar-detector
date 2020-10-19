@@ -1,1 +1,1 @@
-from data.dataset import Dataset
+from .dataset import DataSet

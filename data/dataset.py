@@ -1,20 +1,26 @@
+import json
 import os
+import pathlib
+
 from PIL import Image
-from torch.utils import data
 import numpy as np
+from torch.utils import data
 from torchvision import transforms as T
 
 
-class Dataset(data.Dataset):
+class DataSet(data.Dataset):
 
-    def __init__(self, root, data_list_file, phase='train', input_shape=(1, 128, 128), random_erase=True):
+    def __init__(self, root, labels_json_path, phase='train', input_shape=(1, 128, 128), random_erase=True):
         self.phase = phase
         self.input_shape = input_shape
 
-        with open(os.path.join(data_list_file), 'r') as fd:
-            imgs = fd.readlines()
-        imgs = [os.path.join(root, img[:-1]) for img in imgs]
-        self.imgs = np.random.permutation(imgs)
+        with open(labels_json_path, 'rb') as fd:
+            labels_json = json.load(fd)
+        print(labels_json)
+        data_arrays = [os.path.join(root, data_array_name) for data_array_name in labels_json['data']]
+        self.data_arrays = np.random.permutation(data_arrays)
+        self.label_dict = labels_json['data']
+        print(data_arrays[0])
 
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],
         #                         std=[0.5, 0.5, 0.5])
@@ -23,36 +29,38 @@ class Dataset(data.Dataset):
 
         if self.phase == 'train':
             self.transforms = T.Compose([
-                PadingWithLongerSize(),
-                T.Resize(self.input_shape[1:]),
-                # T.Grayscale(),
+                # PadingWithLongerSize(),
                 T.ToTensor(),
+                # T.Resize(self.input_shape[1:]),
+                # T.Grayscale(),
+
                 normalize,
-                T.RandomErasing(),
+                # T.RandomErasing(),
             ])
 
         else:
             self.transforms = T.Compose([
-                PadingWithLongerSize(),
-                T.Resize(self.input_shape[1:]),
-                # T.Grayscale(),
+                # PadingWithLongerSize(),
                 T.ToTensor(),
+                # T.Resize(self.input_shape[1:]),
+                # T.Grayscale(),
+
                 normalize,
 
             ])
 
     def __getitem__(self, index):
-        sample = self.imgs[index]
-        splits = sample.split()
-        img_path = splits[0]
-        img_data = Image.open(img_path)
-        img_data = img_data.convert('L')
-        img_data = self.transforms(img_data)
-        label = np.int32(splits[1])
-        return img_data.float(), label
+        data_array_path = self.data_arrays[index]
+        data_array = np.load(data_array_path)
+        # data_array = data_array.reshape([data_array.shape[2], data_array.shape[0], data_array.shape[1]])
+        # img_data = img_data.convert('L')
+        data_array = self.transforms(data_array)
+        label = np.array([value for value in self.label_dict[pathlib.Path(data_array_path).name].values()])
+        print(label)
+        return data_array.float(), label
 
     def __len__(self):
-        return len(self.imgs)
+        return len(self.data_arrays)
 
 
 class PadingWithLongerSize(object):
@@ -82,3 +90,4 @@ class PadingWithLongerSize(object):
         for t in self.transform:
             image = t(image)
         return image
+

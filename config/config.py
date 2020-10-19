@@ -6,7 +6,6 @@ import torch
 
 class Config(object):
 
-
     # for prepare data
     raw_data_path = 'data/raw_data/20200807'
 
@@ -14,7 +13,7 @@ class Config(object):
     backbone = 'resnet18'
     classify = 'softmax'
     num_classes = 100
-    dir_name = 'models'
+    dir_name = 'dtypeA'
 
     device = 'cpu'  # cuda or cpu
 
@@ -25,20 +24,20 @@ class Config(object):
     # loss = 'focal_loss'
     loss = 'cross_entropy'
 
-    display = True
-    # display = False
+    # display = True
+    display = False
     finetune = True
     # finetune = False
-    criteria_list = 'data/Datasets/' + dir_name + '/criteria_list.txt'
-    train_root = 'data/Datasets/' + dir_name + '/train/'
-    train_list = 'data/Datasets/' + dir_name + '/train/train_filenames.txt'
-    val_list = 'data/Datasets/' + dir_name + '/train/val_filenames.txt'
+    criteria_list = 'data/DataSets/' + dir_name + '/criteria_list.txt'
+    train_root = 'data/DataSets/' + dir_name + '/train/models'
+    train_list = 'data/DataSets/' + dir_name + '/train/train_labels.json'
+    val_list = 'data/DataSets/' + dir_name + '/train/val_labels.json'
 
-    test_root = 'data/Datasets/' + dir_name + '/test/'
-    test_list = 'data/Datasets/' + dir_name + '/test/test_filenames.txt'
+    test_root = 'data/DataSets/' + dir_name + '/test/'
+    test_list = 'data/DataSets/' + dir_name + '/test/test_filenames.txt'
 
-    lfw_root = 'data/Datasets/lfw/lfw-align-128'
-    lfw_test_list = 'data/Datasets/lfw/lfw_test_pair.txt'
+    lfw_root = 'data/DataSets/lfw/lfw-align-128'
+    lfw_test_list = 'data/DataSets/lfw/lfw_test_pair.txt'
 
     checkpoints_path = 'checkpoints'
     test_metric_fc_path = 'checkpoints/fc_5.pth'
@@ -48,7 +47,7 @@ class Config(object):
     train_batch_size = 16  # batch size
     test_batch_size = 1
 
-    input_shape = (1, 256, 256)
+    input_shape = (9, 200, 200)
 
     # optimizer = 'sgd'
     optimizer = 'Adam'

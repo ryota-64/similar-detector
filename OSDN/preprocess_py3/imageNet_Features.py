@@ -28,7 +28,7 @@ from torch.utils import data
 from torch.nn import DataParallel
 
 from config import Config
-from data.dataset import Dataset
+from data.dataset import DataSet
 from models import *
 from OSDN.openmax_utils import getlabellist, get_train_labels
 
@@ -108,7 +108,7 @@ NPROCESSORS  = 31
 def extractFeatures(args):
     """ Loop through files, extract caffe features, and save them to file
     """
-    train_dataset = Dataset(opt.train_root, opt.train_list, phase='train',
+    train_dataset = DataSet(opt.train_root, opt.train_list, phase='train',
                             input_shape=opt.input_shape, random_erase=False)
     train_loader = data.DataLoader(train_dataset,
                                   # batch_size=opt.train_batch_size,

@@ -85,7 +85,7 @@ def main():
             output = plate_data.output()
             # extract data and save it
             # todo 一部をtest用のデータセットに保存する
-            np.save('data/Datasets/dtypeA/train/models/{}_plate_data.npy'.format(dynain_path.stem[:-7]), output)
+            np.save('data/DataSets/dtypeA/train/models/{}_plate_data.npy'.format(dynain_path.stem[:-7]), output)
         except KeyError as e:
             print(dynain_path, e)
 
