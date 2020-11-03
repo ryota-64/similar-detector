@@ -22,6 +22,8 @@ from test import *
 from utils import Visualizer, view_model
 
 
+
+
 def save_model(model, save_path, name, iter_cnt):
     save_name = os.path.join(save_path, name + '_' + str(iter_cnt) + '.pth')
     torch.save(model.state_dict(), save_name)
@@ -30,12 +32,17 @@ def save_model(model, save_path, name, iter_cnt):
 
 def main(args):
     opt = Config()
-    opt.num_classes = len(get_train_labels(opt.train_root, opt.criteria_list))
+    # opt.num_classes = len(get_train_labels(opt.train_root, opt.criteria_list))
 
     if opt.display:
+        # import subprocess
+        # subprocess.run(["python", "-m", "visdom.server"])
         visualizer = Visualizer()
-    if torch.cuda.is_available() and opt.device == 'cuda':  # GPUが利用可能か確認
-        device = 'cuda:0'
+    else:
+        visualizer = None
+
+    if torch.cuda.is_available() and opt.use_gpu:  # GPUが利用可能か確認
+        device = 'cuda'
     else:
         device = 'cpu'
     print('device: {}'.format(device))
@@ -56,6 +63,8 @@ def main(args):
 
     if opt.loss == 'focal_loss':
         criterion = FocalLoss(gamma=2)
+    elif opt.loss == 'BCEWithLogitsLoss':
+        criterion = nn.BCEWithLogitsLoss()
     else:
         criterion = torch.nn.CrossEntropyLoss()
 
@@ -80,7 +89,6 @@ def main(args):
             param.requires_grad = False
         model.eval()
     print(model)
-
     if opt.metric == 'add_margin':
         metric_fc = AddMarginProduct(512, opt.num_classes, s=30, m=0.35)
     elif opt.metric == 'arc_margin':
@@ -117,7 +125,7 @@ def main(args):
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
-            loss = criterion(output, label)
+            loss = criterion(output, label.float())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -162,7 +170,7 @@ def main(args):
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
-            loss = criterion(output, label)
+            loss = criterion(output, label.float())
 
             output = output.data.cpu().numpy()
             output = np.argmax(output, axis=1)

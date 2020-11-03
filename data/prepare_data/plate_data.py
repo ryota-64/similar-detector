@@ -41,7 +41,7 @@ class PlateData:
 
         self.shell_origin = shell_origin
 
-    def output(self, figsize=(20, 20)):
+    def output(self, figsize=(16, 16)):
         # 形状の情報
         # conterの情報
         #         print(self.node_file)
@@ -59,7 +59,8 @@ class PlateData:
     def fig2array(self, fig):
 
         buf = io.BytesIO()  # インメモリのバイナリストリームを作成
-        fig.savefig(buf, format="jpeg", dpi=10)  # matplotlibから出力される画像のバイナリデータをメモリに格納する.
+        # matplotlibから出力される画像のバイナリデータをメモリに格納する. todo set in config
+        fig.savefig(buf, format="jpeg", dpi=16)
         buf.seek(0)  # ストリーム位置を先頭に戻る
         img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)  # メモリからバイナリデータを読み込み, numpy array 形式に変換
         buf.close()  # ストリームを閉じる(flushする)
@@ -67,7 +68,7 @@ class PlateData:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # cv2.imread() はBGR形式で読み込むのでRGBにする.
         return img
 
-    def get_normal_vector_fig(self, figsize=(20, 20)):
+    def get_normal_vector_fig(self, figsize=(16, 16)):
         shell_t = np.array(self.shell_origin).T
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
@@ -83,7 +84,7 @@ class PlateData:
         plt.close(fig)
         return ret_array
 
-    def get_conter_fig(self, conter_name, figsize=(20, 20)):
+    def get_conter_fig(self, conter_name, figsize=(16, 16)):
 
         conter_data = self.get_plate_conter(conter_name)
         # todo conterの値を画像に反映する必要がある
@@ -121,7 +122,7 @@ class PlateData:
 
     # PlateDataのインスタンス同士でのnormal_vectorの引き算
     @staticmethod
-    def calc_normal_vector_diff(p1, p2, figsize=(20, 20), save_name=None):
+    def calc_normal_vector_diff(p1, p2, figsize=(16, 16), save_name=None):
         shell_t = np.array(p1.shell_origin).T
         p1_value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
@@ -152,7 +153,7 @@ class PlateData:
         # PlateDataのインスタンス同士でのnormal_vectorの引き算
 
     @staticmethod
-    def calc_conter_diff(p1, p2, conter_name, figsize=(20, 20), save_name=None):
+    def calc_conter_diff(p1, p2, conter_name, figsize=(16, 16), save_name=None):
         shell_t = np.array(p1.get_plate_conter(conter_name))
         p1_value = shell_t[1]
         x = shell_t[2]
@@ -180,7 +181,7 @@ class PlateData:
         plt.close(fig)
 
     @staticmethod
-    def plot_plate_conter(conter_data, figsize=(20, 20), save_name=None):
+    def plot_plate_conter(conter_data, figsize=(16, 16), save_name=None):
         value = conter_data[1]
         x = conter_data[2]
         y = conter_data[3]
@@ -208,7 +209,7 @@ class PlateData:
 
     #         fig.savefig('big.png',format='png')
 
-    def plot_normal_vecotr(self, figsize=(20, 20), save_name=None):
+    def plot_normal_vecotr(self, figsize=(16, 16), save_name=None):
         shell_t = np.array(self.shell_origin).T
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]

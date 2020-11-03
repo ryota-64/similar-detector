@@ -15,19 +15,24 @@ class Config(object):
     num_classes = 100
     dir_name = 'dtypeA'
 
-    device = 'cpu'  # cuda or cpu
+    # device = 'cpu'  # cuda or cpu
 
     metric = 'arc_margin'
     easy_margin = False
     # use_se = True
     use_se = False
+
+    # chose loss function
     # loss = 'focal_loss'
-    loss = 'cross_entropy'
+    # loss = 'cross_entropy'
+    # for multi target?
+    loss = "BCEWithLogitsLoss"
 
     # display = True
     display = False
     finetune = True
     # finetune = False
+
     criteria_list = 'data/DataSets/' + dir_name + '/criteria_list.txt'
     train_root = 'data/DataSets/' + dir_name + '/train/models'
     train_list = 'data/DataSets/' + dir_name + '/train/train_labels.json'
@@ -47,7 +52,8 @@ class Config(object):
     train_batch_size = 16  # batch size
     test_batch_size = 1
 
-    input_shape = (9, 200, 200)
+    # 今機能していない
+    input_shape = (9, 256, 256)
 
     # optimizer = 'sgd'
     optimizer = 'Adam'
@@ -88,7 +94,7 @@ class Config(object):
     SCORE_NORMALIZED = 0.7
 
     def __init__(self, root_path=pathlib.Path(__file__).parents[1]):
-        self.device = self.device if torch.cuda.is_available() else 'cpu'
+        # self.device = self.device if torch.cuda.is_available() else 'cpu'
         self.criteria_list = os.path.join(root_path, self.criteria_list)
         self.train_root = os.path.join(root_path, self.train_root)
         self.train_list = os.path.join(root_path, self.train_list)
@@ -104,6 +110,7 @@ class Config(object):
         # temp comment out
         # self.num_classes = len([dir_name for dir_name in os.listdir(self.train_root)
         #                         if pathlib.Path(self.train_root).joinpath(dir_name).is_dir()])
+        self.num_classes = 2
         self.mean_files_path = os.path.join(root_path, self.mean_files_path)
         self.distance_path = os.path.join(root_path, self.distance_path)
         self.feature_path = os.path.join(root_path, self.feature_path)

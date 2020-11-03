@@ -16,11 +16,9 @@ class DataSet(data.Dataset):
 
         with open(labels_json_path, 'rb') as fd:
             labels_json = json.load(fd)
-        print(labels_json)
         data_arrays = [os.path.join(root, data_array_name) for data_array_name in labels_json['data']]
         self.data_arrays = np.random.permutation(data_arrays)
         self.label_dict = labels_json['data']
-        print(data_arrays[0])
 
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],
         #                         std=[0.5, 0.5, 0.5])
@@ -56,7 +54,6 @@ class DataSet(data.Dataset):
         # img_data = img_data.convert('L')
         data_array = self.transforms(data_array)
         label = np.array([value for value in self.label_dict[pathlib.Path(data_array_path).name].values()])
-        print(label)
         return data_array.float(), label
 
     def __len__(self):

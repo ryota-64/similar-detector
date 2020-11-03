@@ -49,7 +49,10 @@ class ArcMarginProduct(nn.Module):
         # --------------------------- convert label to one-hot ---------------------------
         # one_hot = torch.zeros(cosine.size(), requires_grad=True, device='cuda')
         one_hot = torch.zeros(cosine.size(), device=device)
-        one_hot.scatter_(1, label.view(-1, 1).long(), 1)
+        # print(label)
+        # label = torch.tensor([[1],[2]])
+        # one_hot.scatter_(1, label.view(-1, 1).long(), 1)
+        one_hot = label.float()
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
         output = (one_hot * phi) + ((1.0 - one_hot) * cosine)  # you can use torch.where if your torch.__version__ is 0.4
         output *= self.s
