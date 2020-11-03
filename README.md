@@ -51,7 +51,7 @@ gpu環境で
 ```bash
 docker build -t similar ./docker
 docker run --gpus all -t -v $PWD:/workspace/similar-detector --name similar -d -p 8097:8097 similar  bash
-docker exec -it arcface bash
+docker exec -it similar bash
 ```
 docker 内で
 ```bash

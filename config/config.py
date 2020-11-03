@@ -28,8 +28,8 @@ class Config(object):
     # for multi target?
     loss = "BCEWithLogitsLoss"
 
-    # display = True
-    display = False
+    display = True
+    # display = False
     finetune = True
     # finetune = False
 
