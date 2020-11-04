@@ -4,7 +4,6 @@ import os
 import pathlib
 
 import numpy as np
-import pandas as pd
 import torch
 from torch.utils import data
 from torch.nn import DataParallel
@@ -23,13 +22,14 @@ from data.dataset import DataSet
 from config import Config
 from models import *
 
-
 from sklearn.manifold import TSNE
 from sklearn import preprocessing
 import umap
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import plotly.offline as offline
+
+
 # offline.init_notebook_mode()
 #
 # from metric_learning.src.try_network import MetricNN
@@ -39,16 +39,19 @@ import plotly.offline as offline
 def main():
     opt = Config(os.getcwd())
     if opt.backbone == 'resnet18':
-        model = resnet_face18(opt.use_se)
+        model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
     elif opt.backbone == 'resnet34':
-        model = resnet34()
+        model = resnet34(opt.input_shape[0])
     elif opt.backbone == 'resnet50':
-        model = resnet50()
+        model = resnet50(opt.input_shape[0])
+    else:
+        raise TypeError('not match model type')
 
     # load_model(model, opt.test_model_path)
-    if torch.cuda.is_available() and opt.device == 'cuda':
+    # if torch.cuda.is_available() and opt.use_gpu == 'cuda':
+    if opt.use_gpu:
         model = DataParallel(model)
-        model.load_state_dict(torch.load(opt.test_model_path, map_location={'cuda:0': 'cpu'}))
+        model.load_state_dict(torch.load(opt.test_model_path, map_location=torch.device('cpu')))
     else:
         model.load_state_dict(torch.load(opt.test_model_path, map_location={'cpu': 'cpu'}))
     # model.to(torch.device(device))
@@ -65,20 +68,48 @@ def main():
 
     test_dataset = DataSet(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
     test_loader = data.DataLoader(test_dataset,
-                                 batch_size=1000,
+                                  batch_size=10,
                                   # batch_size=opt.test_batch_size,
-                                 shuffle=True,
-                                 num_workers=opt.num_workers)
+                                  shuffle=True,
+                                  num_workers=opt.num_workers)
 
-    for x, y in test_loader:
+    for i, test_batch in enumerate(trainloader):
+        data_input, label = test_batch
+        data_input = data_input.to(device)
+        label = label.to(device).long()
+        print(data_input.shape)
+        latent_vecs = model(data_input)
+        target = label
+        # plot3d_tsne(latent_vecs, target, )
+        # show_umap(latent_vecs, target)
+        t_sne(latent_vecs)
+        # t_sne(latent_vecs, target)
 
-        latent_vecs = model(x)
-        print(latent_vecs.shape, y.shape)
-        target = y
-        plot3d_tsne(latent_vecs, target,)
-        show_umap(latent_vecs, target)
-        t_sne(latent_vecs, target)
+
+
+    for i, test_batch in enumerate(test_loader):
+        data_input, label = test_batch
+        data_input = data_input.to(device)
+        label = label.to(device).long()
+        print(data_input.shape)
+        latent_vecs = model(data_input)
+        target = label
+        # plot3d_tsne(latent_vecs, target, )
+        # show_umap(latent_vecs, target)
+        t_sne(latent_vecs)
+        # t_sne(latent_vecs, target)
+
+
 #
+#     for x, y in test_loader:
+#         print(x.shape)
+#         latent_vecs = model(x)
+#         print(latent_vecs.shape, y.shape)
+#         target = y
+#         plot3d_tsne(latent_vecs, target,)
+#         show_umap(latent_vecs, target)
+#         t_sne(latent_vecs, target)
+# #
 #
 # def show_t_SNE_umap(test_loader_path, model, tripletnet):
 #     if torch.cuda.is_available():  # GPUが利用可能か確認
@@ -120,7 +151,6 @@ def plot3d_tsne(latent_vecs, target, data_type='test'):
     start_time = time.time()
     tsne = TSNE(n_components=3, random_state=0).fit_transform(latent_vecs)
 
-
     # 3Dの散布図が作れるScatter3dを使います．
     trace1 = go.Scatter3d(
         x=tsne[:, 0],  # それぞれの次元をx, y, zにセットするだけです．
@@ -140,9 +170,10 @@ def plot3d_tsne(latent_vecs, target, data_type='test'):
     data = [trace1]
     layout = dict(height=700, width=600, title='coil-20 tsne exmaple')
     fig = dict(data=data, layout=layout)
-    offline.plot(fig, filename='estimate_visualize/tsne_example',auto_open=True)
+    offline.plot(fig, filename='estimate_visualize/tsne_example', auto_open=True)
 
-def t_sne(latent_vecs, target, data_type='test'):
+
+def t_sne(latent_vecs, target=None, data_type='test'):
     latent_vecs = latent_vecs.to("cpu")
     latent_vecs = latent_vecs.detach().numpy()
     start_time = time.time()

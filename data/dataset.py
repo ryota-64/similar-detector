@@ -44,7 +44,7 @@ class DataSet(data.Dataset):
                 # T.Grayscale(),
 
                 normalize,
-
+                # T.RandomErasing(),
             ])
 
     def __getitem__(self, index):

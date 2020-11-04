@@ -133,7 +133,8 @@ def main(args):
             iters = i * len(trainloader) + ii
 
             output = output.data.cpu().numpy()
-            output = np.argmax(output, axis=1)
+            # output = np.argmax(output, axis=1)
+            output = output > 0.5
             label = label.data.cpu().numpy()
             acc = np.mean((output == label).astype(int))
             spend_time = (time.time() - start)
@@ -173,7 +174,8 @@ def main(args):
             loss = criterion(output, label.float())
 
             output = output.data.cpu().numpy()
-            output = np.argmax(output, axis=1)
+            # output = np.argmax(output, axis=1)
+            output = output > 0.5
             label = label.data.cpu().numpy()
             acc = np.mean((output == label).astype(int))
             speed = opt.print_freq / (time.time() - start)
@@ -181,8 +183,9 @@ def main(args):
             eval_loss.extend([loss.item()] * len(label))
             eval_speed.extend([speed] * len(label))
         time_str = time.asctime(time.localtime(time.time()))
-        print('{} val epoch {}  loss {} acc {}'.format(time_str, i, np.mean(eval_speed),
-                                                       np.mean(eval_loss), np.mean(eval_acc)))
+        # ↓　変なのはいる？acc
+        # print('{} val epoch {}  loss {} acc {}'.format(time_str, i,
+        #                                                np.mean(eval_speed), np.mean(eval_loss), np.mean(eval_acc)))
         if opt.display:
             visualizer.display_current_results(i, np.mean(eval_loss), name='val_loss')
             visualizer.display_current_results(i, np.mean(eval_acc), name='val_acc')

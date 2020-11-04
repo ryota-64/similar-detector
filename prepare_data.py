@@ -1,5 +1,6 @@
 
 
+import json
 from logging import getLogger
 import pathlib
 
@@ -35,7 +36,7 @@ def get_conter_csv(dynain_path):
     # todo 必要なconterをconfigで指定するようにする？
     for conter_dir in dynain_path.parents[1].joinpath('conters/').iterdir():
         if conter_dir.stem[:1] != '.':
-            conter_itr = conter_dir.glob('{}.csv'.format(dynain_path.stem[:-7]))
+            conter_itr = conter_dir.glob('**/{}*.csv'.format(dynain_path.stem.split('_')[0]))
             conter_paths.append(_take_one_or_ret_false(conter_itr))
     return conter_paths
 
@@ -43,7 +44,7 @@ def get_conter_csv(dynain_path):
 # 一個だけ存在すればそれを返す、それ以外ならfalse
 # todo どれのblankなのかをうまく判定できるように
 def get_blank_csv(dynain_path):
-    blank_nodes = dynain_path.parents[1].joinpath('blank/NodeID').glob('{}*_BLANK_*.csv'.format(dynain_path.stem[:1]))
+    blank_nodes = dynain_path.parents[1].joinpath('blank/NodeID').glob('{}*_BLANK_*.csv'.format(dynain_path.stem.split('_')[0]))
 
     return _take_one_or_ret_false(blank_nodes)
 
@@ -70,6 +71,7 @@ def main():
     dynains = [dynain_path for dynain_path in raw_data_path.joinpath('dynain').iterdir() if check_data(dynain_path)]
 
     print(dynains)
+    label_data = {}
     # get list of data
     for dynain_path in dynains:
         try:
@@ -80,14 +82,23 @@ def main():
             plate_data = PlateData(blank_node_path)
             plate_data.set_dynain_data(dynain_data)
             for conter in conter_paths:
-                plate_data.set_conter(conter.parents[0].stem, conter)
+                print(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name)
+                plate_data.set_conter(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name, conter)
 
             output = plate_data.output()
+            plate_label = plate_data.output_labels()
             # extract data and save it
             # todo 一部をtest用のデータセットに保存する
-            np.save('data/DataSets/dtypeA/train/models/{}_plate_data.npy'.format(dynain_path.stem[:-7]), output)
+            np.save('data/DataSets/{}/train/models/{}_plate_data.npy'.format(opt.dir_name,
+                                                                             dynain_path.stem[:-7]), output)
+            label_data['{}_plate_data.npy'.format(dynain_path.stem[:-7])] = plate_label
+
         except KeyError as e:
             print(dynain_path, e)
+
+    pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
+    with open(opt.train_list, mode='w')as f:
+        json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == '__main__':

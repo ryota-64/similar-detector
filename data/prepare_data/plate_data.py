@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 class PlateData:
     def __init__(self, blank_node_csv):
 
-        with open(blank_node_csv) as f:
-            node_file_raw = pd.read_csv(f)
+        with open(blank_node_csv, encoding="shift-jis") as f:
+            print(blank_node_csv)
+            node_file_raw = pd.read_csv(f, encoding="shift-jis")
             node_file = node_file_raw[3:]
             node_file.columns = ['node_id', 'x', 'y', 'z']
         self.node_file = node_file
@@ -18,8 +19,8 @@ class PlateData:
         self.shell_origin = None
 
     def _read_conter_file(self, conter_csv_path):
-        with open(conter_csv_path) as f:
-            conter_raw = pd.read_csv(f, header=3)
+        with open(conter_csv_path, encoding="shift-jis") as f:
+            conter_raw = pd.read_csv(f, header=3, encoding="shift-jis")
             conter_file = conter_raw.drop("Unnamed: 5", axis=1)
             conter_file.columns = ['node_id', 'conter_value', 'x', 'y', 'z']
         return conter_file
@@ -55,6 +56,42 @@ class PlateData:
 
         print(ret_array.shape)
         return ret_array
+
+    def output_labels(self):
+
+        label_dict = {}
+        print(self.conters_data.keys())
+        for conter_name, conter in self.conters_data.items():
+            label_dict[conter_name] = int(bool(self._contain_error(conter_name, conter)))
+
+        print(label_dict)
+        return label_dict
+
+    @staticmethod
+    def _contain_error(name, conter):
+        if name == '2.板厚減少率CSV':
+            error_num = PlateData.check_conter_value(conter, '>', 0.08)
+            error_num += PlateData.check_conter_value(conter, '<', -0.1)
+            print(error_num)
+
+            return error_num
+
+        # elif name == '3.シワコンターCSV':
+        #     error_num = PlateData.check_conter_value(conter, '>', 0.05)
+        #     error_num += PlateData.check_conter_value(conter, '<', -0.05)
+        #     print(error_num)
+            # return error_num
+
+        else:
+            return 0
+
+    @staticmethod
+    def check_conter_value(conter, operator, value):
+        if operator == '>':
+            sum_of_error = (conter['conter_value'] > value).sum()
+        elif operator == '<':
+            sum_of_error = (conter['conter_value'] < value).sum()
+        return sum_of_error
 
     def fig2array(self, fig):
 

@@ -7,13 +7,14 @@ import torch
 class Config(object):
 
     # for prepare data
-    raw_data_path = 'data/raw_data/20200807'
+    # raw_data_path = 'data/raw_data/20200807'
+    raw_data_path = 'data/raw_data/20201023'
 
     env = 'default'
     backbone = 'resnet18'
     classify = 'softmax'
     num_classes = 100
-    dir_name = 'dtypeA'
+    dir_name = 'dtypeB'
 
     # device = 'cpu'  # cuda or cpu
 
@@ -38,22 +39,22 @@ class Config(object):
     train_list = 'data/DataSets/' + dir_name + '/train/train_labels.json'
     val_list = 'data/DataSets/' + dir_name + '/train/val_labels.json'
 
-    test_root = 'data/DataSets/' + dir_name + '/test/'
-    test_list = 'data/DataSets/' + dir_name + '/test/test_filenames.txt'
+    test_root = 'data/DataSets/' + dir_name + '/test/models'
+    test_list = 'data/DataSets/' + dir_name + '/test/test_labels.json'
 
     lfw_root = 'data/DataSets/lfw/lfw-align-128'
     lfw_test_list = 'data/DataSets/lfw/lfw_test_pair.txt'
 
     checkpoints_path = 'checkpoints'
-    test_metric_fc_path = 'checkpoints/fc_5.pth'
+    test_metric_fc_path = 'checkpoints/fc_10.pth'
     test_model_path = 'checkpoints/resnet18_40.pth'
     save_interval = 10
 
-    train_batch_size = 16  # batch size
+    train_batch_size = 8  # batch size
     test_batch_size = 1
 
     # 今機能していない
-    input_shape = (9, 256, 256)
+    input_shape = (15, 256, 256)
 
     # optimizer = 'sgd'
     optimizer = 'Adam'
@@ -110,7 +111,8 @@ class Config(object):
         # temp comment out
         # self.num_classes = len([dir_name for dir_name in os.listdir(self.train_root)
         #                         if pathlib.Path(self.train_root).joinpath(dir_name).is_dir()])
-        self.num_classes = 2
+        # self.num_classes = len(list(pathlib.Path(self.raw_data_path).joinpath('conters').iterdir()))
+        self.num_classes = 4
         self.mean_files_path = os.path.join(root_path, self.mean_files_path)
         self.distance_path = os.path.join(root_path, self.distance_path)
         self.feature_path = os.path.join(root_path, self.feature_path)
