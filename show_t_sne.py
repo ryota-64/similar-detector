@@ -60,7 +60,7 @@ def main():
 
     train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
     trainloader = data.DataLoader(train_dataset,
-                                  batch_size=opt.train_batch_size,
+                                  batch_size=10,
                                   shuffle=True,
                                   num_workers=opt.num_workers)
 
