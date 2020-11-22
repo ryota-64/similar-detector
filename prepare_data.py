@@ -1,5 +1,3 @@
-
-
 import json
 from logging import getLogger
 import pathlib
@@ -7,7 +5,7 @@ import pathlib
 import numpy as np
 
 from config import Config
-from data.prepare_data import PlateData, DynainData
+from prepare_data import PlateData, DynainData
 
 logger = getLogger(__name__)
 
@@ -85,7 +83,8 @@ def main():
                 print(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name)
                 plate_data.set_conter(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name, conter)
 
-            output = plate_data.output()
+            output = plate_data.output(output_size=(256, 256))
+
             plate_label = plate_data.output_labels()
             # extract data and save it
             # todo 一部をtest用のデータセットに保存する

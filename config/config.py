@@ -1,8 +1,6 @@
 import os
 import pathlib
 
-import torch
-
 
 class Config(object):
 

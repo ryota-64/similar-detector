@@ -1,9 +1,15 @@
+import io
+import itertools
+import multiprocessing as multi
+from multiprocessing import Pool
+
+import pymesh
 import pandas as pd
 import numpy as np
-import io
 import cv2
 import matplotlib.pyplot as plt
-# pd.set_option('display.max_colwidth',1000)
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 
 class PlateData:
@@ -14,9 +20,10 @@ class PlateData:
             node_file_raw = pd.read_csv(f, encoding="shift-jis")
             node_file = node_file_raw[3:]
             node_file.columns = ['node_id', 'x', 'y', 'z']
-        self.node_file = node_file
+        self.blank_node_file = node_file
         self.conters_data = {}
         self.shell_origin = None
+        self.shells = []
 
     def _read_conter_file(self, conter_csv_path):
         with open(conter_csv_path, encoding="shift-jis") as f:
@@ -25,37 +32,110 @@ class PlateData:
             conter_file.columns = ['node_id', 'conter_value', 'x', 'y', 'z']
         return conter_file
 
+    # def set_dynain_data_old(self, dynain_data):
+    #     # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
+    #     # (x,y,z）はblankを採用
+    #     shell_origin = []
+    #     node_file_matrix = self.blank_node_file.values
+    #     node_dict = {node[0]: node for node in node_file_matrix}
+    #     print(len(list(node_dict.keys())))
+    #     for shell in dynain_data.shells:
+    #         # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式
+    #         nodes = shell.nodes
+    #
+    #         (x, y, z) = np.average([node_dict[str(node.node_id)].astype('float64')[1:4] for node in nodes], axis=0)
+    #
+    #         shell_origin.append([shell.shell_id, shell.normal_vector, x, y, z])
+    #
+    #     self.shell_origin = shell_origin
+
     def set_dynain_data(self, dynain_data):
-        # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
-        # (x,y,z）はblankを採用
+        # [shell_object, (x_min, x_max, y_min, y_max)]
+        # の形式 でshellの個数分の配列をshell_origin として保存 (2つ目はblank_area)
         shell_origin = []
-        node_file_matrix = self.node_file.values
-        node_dict = {node[0]: node for node in node_file_matrix}
-        print(len(list(node_dict.keys())))
+        node_file_matrix = self.blank_node_file.values
+        blank_node_dict = {node[0]: node for node in node_file_matrix}
+
         for shell in dynain_data.shells:
-            # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式
-            nodes = shell.nodes
+            contain_nodes = [blank_node_dict[str(node.node_id)] for node in shell.nodes]
+            shell.set_blank_nodes(contain_nodes)
 
-            (x, y, z) = np.average([node_dict[str(node.node_id)].astype('float64')[1:4] for node in nodes], axis=0)
-
-            shell_origin.append([shell.shell_id, shell.normal_vector, x, y, z])
-
+            self.shells.append(shell)
+            shell_origin.append([shell, shell.blank_area])
         self.shell_origin = shell_origin
+        print(len(self.shell_origin))
 
-    def output(self, figsize=(16, 16)):
-        # 形状の情報
-        # conterの情報
-        #         print(self.node_file)
-        print(self.conters_data.keys())
-        ret_array = self.get_normal_vector_fig(figsize)
+    # 出力したい画像のピクセルの位置のshellを取ってきて、各値を出力する（x,yを指定して取ってくる)
+    def pickup_shell_and_output(self, x, y):
 
-        for key in self.conters_data.keys():
-            conter_array = self.get_conter_fig(key)
-            print(conter_array.shape)
-            ret_array = np.concatenate([ret_array, conter_array], axis=2)
+        candidate_shells = [shell[0] for shell in self.shell_origin
+                            if shell[1][0] <= x <= shell[1][1]
+                            and shell[1][2] <= y <= shell[1][3]]
+        pickup_shell = [shell for shell in candidate_shells if shell.is_contain_point(x, y)]
+        if pickup_shell:
+            # 複数あった場合は一個目のものを採用
+            return pickup_shell[0].output()
+        else:
+            return np.zeros_like(self.shells[0].output())
 
+    # 画像を出力する
+    def output(self, output_size=(256, 256)):
+
+        # blankのx, y の　max, min をだす
+        x_max = float(max(self.blank_node_file['x']))
+        x_min = float(min(self.blank_node_file['x']))
+        y_max = float(max(self.blank_node_file['y']))
+        y_min = float(min(self.blank_node_file['y']))
+        print(x_max, x_min, y_max, y_min)
+        x_range = np.linspace(x_min, x_max, output_size[0])
+        y_range = np.linspace(y_min, y_max, output_size[1])
+        xx, yy = np.meshgrid(x_range, y_range)
+        worker_num = multi.cpu_count() - 2
+        print('worker num: ', worker_num)
+        p = Pool(worker_num)
+
+        ret_array = p.starmap(self.pickup_shell_and_output, itertools.product(x_range, y_range))
+        # ret_array = p.starmap(self.wrap, itertools.product(x_range, y_range))
+        p.close()
+        ret_array = np.array([np.array(line) for line in ret_array]).reshape((output_size[0], output_size[1], -1))
         print(ret_array.shape)
-        return ret_array
+        print('a')
+
+        return np.array(ret_array)
+        # for i in ret_array:
+        #     for j in i:
+        #         print(j)
+        #
+        #
+        #
+        # # 形状の情報
+        # # conterの情報
+        # #         print(self.node_file)
+        # print(self.conters_data.keys())
+        # ret_array = self.get_normal_vector_fig(figsize)
+        #
+        # for key in self.conters_data.keys():
+        #     conter_array = self.get_conter_fig(key)
+        #     print(conter_array.shape)
+        #     ret_array = np.concatenate([ret_array, conter_array], axis=2)
+        #
+        # print(ret_array.shape)
+        # return ret_array
+
+    # def output_old(self, figsize=(16, 16)):
+    #     # 形状の情報
+    #     # conterの情報
+    #     #         print(self.node_file)
+    #     print(self.conters_data.keys())
+    #     ret_array = self.get_normal_vector_fig(figsize)
+    #
+    #     for key in self.conters_data.keys():
+    #         conter_array = self.get_conter_fig(key)
+    #         print(conter_array.shape)
+    #         ret_array = np.concatenate([ret_array, conter_array], axis=2)
+    #
+    #     print(ret_array.shape)
+    #     return ret_array
 
     def output_labels(self):
 
@@ -80,7 +160,7 @@ class PlateData:
         #     error_num = PlateData.check_conter_value(conter, '>', 0.05)
         #     error_num += PlateData.check_conter_value(conter, '<', -0.05)
         #     print(error_num)
-            # return error_num
+        # return error_num
 
         else:
             return 0
@@ -111,10 +191,14 @@ class PlateData:
         x = shell_t[2]
         y = shell_t[3]
 
+        print(x[200], y[200], value[200])
+        value[200] = [0, 0, 0]
+        print(x[200], y[200], value[200])
+
         fig = plt.figure(figsize=figsize, linewidth=0, )
 
         ax = fig.add_axes((0, 0, 1, 1))
-        ax.axis("off")
+        # ax.axis("off")
         ax.scatter(x, y, c=value)
         ax.set_aspect('equal')
         ret_array = self.fig2array(fig)
@@ -149,11 +233,11 @@ class PlateData:
     def get_plate_conter(self, conter_name):
         # node_id, conter_data, x, y, z
 
-        data = [self.node_file['node_id'].values,
+        data = [self.blank_node_file['node_id'].values,
                 self.conters_data[conter_name]['conter_value'].values.astype('float64'),
-                self.node_file['x'].values.astype('float64'),
-                self.node_file['y'].values.astype('float64'),
-                self.node_file['z'].values.astype('float64'),
+                self.blank_node_file['x'].values.astype('float64'),
+                self.blank_node_file['y'].values.astype('float64'),
+                self.blank_node_file['z'].values.astype('float64'),
                 ]
         return data
 
@@ -273,13 +357,14 @@ class PlateData:
 
 
 class Node(object):
-    def __init__(self, node_id, x, y, z, translational_flag, rotate_flag):
+    def __init__(self, node_id, x, y, z, translational_flag, rotate_flag, gaussian_curvature):
         self.node_id = node_id
         self.x = x
         self.y = y
         self.z = z
         self.translational_flag = translational_flag
         self.rotate_flag = rotate_flag
+        self.gaussian_curvature = gaussian_curvature
         self.belog_shells = []
 
     def get_points(self):
@@ -295,7 +380,11 @@ class Shell:
         self.part = part
         self.nodes = nodes
         self.thicknesses = [thick1, thick2, thick3, thick4]
+        self.blank_nodes = []
+        self.blank_area = None
 
+        # 代入されたnodesを使って、曲率を入れる
+        self.gaussian_curvature = self.calc_shell_gaussian_curvature(nodes)
         self.normal_vector = self.create_normal_vector([node.get_points() for node in self.nodes][0:3])
         self.average_thickness = np.average([thick1, thick2, thick3, thick4])
 
@@ -313,6 +402,34 @@ class Shell:
         normal = np.array(u_cross_v)
         return normal
 
+    def output(self):
+        x = np.average([float(node[1]) for node in self.blank_nodes])
+        y = np.average([float(node[2]) for node in self.blank_nodes])
+        z = np.average([float(node[3]) for node in self.blank_nodes])
+        gaussian_curvature = np.average([node.gaussian_curvature for node in self.nodes])
+        return np.array([x, y, z, gaussian_curvature, self.shell_id], dtype=np.float32)
+
+    def calc_shell_gaussian_curvature(self, nodes):
+        return np.average([node.gaussian_curvature for node in nodes])
+
+    def set_blank_nodes(self, blank_nodes):
+        self.blank_nodes = blank_nodes
+        x_max = float(max([node[1] for node in blank_nodes]))
+        y_max = float(max([node[2] for node in blank_nodes]))
+        x_min = float(min([node[1] for node in blank_nodes]))
+        y_min = float(min([node[2] for node in blank_nodes]))
+        self.blank_area = (x_min, x_max, y_min, y_max)
+
+    def is_contain_point(self, x, y):
+        if not self.blank_nodes:
+            raise ValueError('Have not set origin nodes data')
+        else:
+            node_points = [node.astype('float64')[1:4] for node in self.blank_nodes]
+            poly_points = [(point[0], point[1]) for point in node_points]
+            polygon = Polygon(poly_points)
+            point = Point(x, y)
+            return polygon.contains(point)
+
 
 class DynainData:
     def __init__(self, file_path):
@@ -325,15 +442,25 @@ class DynainData:
 
         node_matrix = matrix[asterisk_indexes[0] + 1:asterisk_indexes[1]]
 
-        self.nodes = {int(node_data[0][0:8]): Node(*self.split_node_str(node_data[0])) for node_data in node_matrix}
-
+        self.raw_nodes = [self.split_node_str(node_data[0])[2:5] for node_data in node_matrix]
         shell_data = matrix[asterisk_indexes[1] + 1:asterisk_indexes[2]]
+        self.raw_shells = [self.split_shell_str_c(shell_data[i][0]) for i in range(0, len(shell_data), 2)]
+        vertices, faces = self._data_for_pymesh()
+        mesh = pymesh.form_mesh(vertices, faces)
+        triangled_mesh = pymesh.quad_to_tri(mesh)
+        triangled_mesh.add_attribute("vertex_gaussian_curvature")
+        nodes_gaussian_curvature = triangled_mesh.get_attribute("vertex_gaussian_curvature")
+        print(triangled_mesh.get_attribute("vertex_gaussian_curvature").shape)
 
+        self.nodes = {int(node_data[0][0:8]): Node(*self.split_node_str(node_data[0]), gaussian_curvature)
+                      for node_data, gaussian_curvature in zip(node_matrix, nodes_gaussian_curvature)}
         self.shells = [Shell(*self.split_shell_str_a(shell_data[i][0]), *self.split_shell_str_b(shell_data[i + 1][0]))
                        for i in range(0, len(shell_data), 2)]
 
-        # todo それ以外のやつはまだ
+    def _data_for_pymesh(self):
+        return np.array(self.raw_nodes), np.array(self.raw_shells)
 
+    # todo *KEYWORDの２つ目以降のやつはまだ
     def split_node_str(self, node_str):
         return int(node_str[0:8]), float(node_str[8:24]), float(node_str[24:40]), float(node_str[40:56]), \
                node_str[63:64], node_str[-1:]
@@ -345,3 +472,9 @@ class DynainData:
 
     def split_shell_str_b(self, node_str):
         return float(node_str[0:16]), float(node_str[16:32]), float(node_str[32:48]), float(node_str[48:64])
+
+    # for pymesh nodes ids
+    # dynain data's node id started from 1, but pymesh only use list. so index -1
+    def split_shell_str_c(self, shell_str):
+        return [int(shell_str[16:24]) - 1, int(shell_str[24:32]) - 1,
+                int(shell_str[32:40]) - 1, int(shell_str[40:48]) - 1]
