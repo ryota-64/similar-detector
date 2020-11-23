@@ -8,7 +8,7 @@ class Config(object):
     env = 'default'
     backbone = 'resnet18'
     classify = 'softmax'
-    num_classes = 100
+    num_classes = 4
     metric = 'arc_margin'
     easy_margin = False
     # use_se = True
@@ -19,8 +19,8 @@ class Config(object):
     # for multi target?
     loss = "BCEWithLogitsLoss"
 
-    # 今機能していない
-    input_shape = (15, 256, 256)
+    # (channel_num, x, y)
+    input_shape = (5, 256, 256)
 
     # optimizer = 'sgd'
     optimizer = 'Adam'
@@ -32,14 +32,7 @@ class Config(object):
     # data dir config
     data_sets_dir = '../data/DataSets/'
     dir_name = 'dtypeC'
-
-    criteria_list = data_sets_dir + dir_name + '/criteria_list.txt'
-    train_root = data_sets_dir + dir_name + '/train/models'
-    train_list = data_sets_dir + dir_name + '/train/train_labels.json'
-    val_list = data_sets_dir + dir_name + '/train/val_labels.json'
-
-    test_root = data_sets_dir + dir_name + '/test/models'
-    test_list = data_sets_dir + dir_name + '/test/test_labels.json'
+    dir_name_for_create_data_sets = 'dtypeB'
 
     checkpoints_path = '../checkpoints'
     test_metric_fc_path = 'checkpoints/fc_10.pth'
@@ -89,16 +82,19 @@ class Config(object):
     # SCORE_THRESHOLD = 100
     # SCORE_NORMALIZED = 0.7
 
-    def __init__(self, root_path=pathlib.Path(__file__).parents[1]):
+    def __init__(self, root_path=pathlib.Path(__file__).parents[1], for_prepare_data_creation=False):
         # self.device = self.device if torch.cuda.is_available() else 'cpu'
         self.data_sets_dir = os.path.join(root_path, self.data_sets_dir)
         self.raw_data_path = os.path.join(root_path, self.raw_data_path)
-        self.criteria_list = os.path.join(root_path, self.criteria_list)
-        self.train_root = os.path.join(root_path, self.train_root)
-        self.train_list = os.path.join(root_path, self.train_list)
-        self.val_list = os.path.join(root_path, self.val_list)
-        self.test_root = os.path.join(root_path, self.test_root)
-        self.test_list = os.path.join(root_path, self.test_list)
+
+        # preapare_data.pyの時とで場合分け
+        self.dir_name = self.dir_name_for_create_data_sets if for_prepare_data_creation else self.dir_name
+        self.criteria_list = os.path.join(self.data_sets_dir, self.dir_name, 'criteria_list.txt')
+        self.train_root = os.path.join(self.data_sets_dir, self.dir_name, 'train/models')
+        self.train_list = os.path.join(self.data_sets_dir, self.dir_name, 'train/train_labels.json')
+        self.val_list = os.path.join(self.data_sets_dir, self.dir_name, 'train/val_labels.json')
+        self.test_root = os.path.join(self.data_sets_dir, self.dir_name, 'test/models')
+        self.test_list = os.path.join(self.data_sets_dir, self.dir_name, 'test/test_labels.json')
         self.test_model_path = os.path.join(root_path, self.test_model_path)
         self.test_metric_fc_path = os.path.join(root_path, self.test_metric_fc_path)
         self.debug_file = os.path.join(root_path, self.debug_file)

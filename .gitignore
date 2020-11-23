@@ -2,6 +2,7 @@ sandbox/*
 *.pyc
 *.pth
 .idea/*
+*/.idea/*
 data/DataSets/*
 data/raw_data/*
 !data/**/*.py

@@ -43,7 +43,8 @@ def train(args):
     trainloader = torch.utils.data.DataLoader(train_dataset,
                                               batch_size=opt.train_batch_size,
                                               shuffle=True,
-                                              num_workers=opt.num_workers)
+                                              num_workers=opt.num_workers,
+                                              drop_last=True)
 
     val_dataset = DataSet(opt.train_root, opt.val_list, phase='val', input_shape=opt.input_shape)
     val_loader = torch.utils.data.DataLoader(val_dataset,
