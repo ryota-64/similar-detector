@@ -21,7 +21,7 @@ if __name__ == '__main__':
     #     plate_data.set_conter(
     #         conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3].name,
     #         conter)
-    plate_data.plot_normal_vecotr(save_name='result/vector_sample.png')
+    plate_data.plot_normal_vector(save_name='result/vector_sample.png')
     output = plate_data.output(output_size=(256, 256))
     np.save('result/out.npy', output)
     plate_label = plate_data.output_labels()

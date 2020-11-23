@@ -1,24 +1,13 @@
-import argparse
 import time
 import os
-import pathlib
 
-import numpy as np
 import torch
 from torch.utils import data
 from torch.nn import DataParallel
-from torchvision import datasets, transforms, models
 
-from sklearn.manifold import TSNE
-from sklearn import preprocessing
-import umap
-import matplotlib.pyplot as plt
-import plotly.graph_objs as go
-import plotly.offline as offline
 # offline.init_notebook_mode()
 
-from data.make_file_names import load_criteria_list
-from data.dataset import DataSet
+from data import DataSet
 from config import Config
 from models import *
 

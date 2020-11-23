@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.nn import Parameter
 import math
 
-from config import Config
+from ..config import Config
 
 opt = Config()
 

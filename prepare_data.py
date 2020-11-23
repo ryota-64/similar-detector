@@ -1,14 +1,14 @@
 import json
 from logging import getLogger
+import os
 import pathlib
 
 import numpy as np
 
-from config import Config
+from similar_detector.config import Config
 from prepare_data import PlateData, DynainData
 
 logger = getLogger(__name__)
-
 
 opt = Config()
 
@@ -42,14 +42,14 @@ def get_conter_csv(dynain_path):
 # 一個だけ存在すればそれを返す、それ以外ならfalse
 # todo どれのblankなのかをうまく判定できるように
 def get_blank_csv(dynain_path):
-    blank_nodes = dynain_path.parents[1].joinpath('blank/NodeID').glob('{}*_BLANK_*.csv'.format(dynain_path.stem.split('_')[0]))
+    blank_nodes = dynain_path.parents[1].joinpath('blank/NodeID').glob(
+        '{}*_BLANK_*.csv'.format(dynain_path.stem.split('_')[0]))
 
     return _take_one_or_ret_false(blank_nodes)
 
 
 # iteratorのlengthが１ならその要素を,それ以外ならfalseを返す
 def _take_one_or_ret_false(iterator):
-
     try:
         one = iterator.__next__()
     except StopIteration:
@@ -63,7 +63,6 @@ def _take_one_or_ret_false(iterator):
 
 
 def main():
-
     # check hire
     raw_data_path = pathlib.Path(opt.raw_data_path)
     dynains = [dynain_path for dynain_path in raw_data_path.joinpath('dynain').iterdir() if check_data(dynain_path)]
@@ -80,17 +79,22 @@ def main():
             plate_data = PlateData(blank_node_path)
             plate_data.set_dynain_data(dynain_data)
             for conter in conter_paths:
-                print(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name)
-                plate_data.set_conter(conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3 ].name, conter)
+                print(conter.relative_to(opt.raw_data_path).parents[
+                          len(conter.relative_to(opt.raw_data_path).parents) - 3].name)
+                plate_data.set_conter(conter.relative_to(opt.raw_data_path).parents[
+                                          len(conter.relative_to(opt.raw_data_path).parents) - 3].name, conter)
 
             output = plate_data.output(output_size=(256, 256))
 
             plate_label = plate_data.output_labels()
             # extract data and save it
             # todo 一部をtest用のデータセットに保存する
-            np.save('data/DataSets/{}/train/models/{}_plate_data.npy'.format(opt.dir_name,
-                                                                             dynain_path.stem[:-7]), output)
-            label_data['{}_plate_data.npy'.format(dynain_path.stem[:-7])] = plate_label
+            file_name = '{}_plate_data.npy'.format(dynain_path.stem[:-7])
+            output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
+            if not output_path.exists() and not output_path.parents[0].is_dir():
+                output_path.parents[0].mkdir(parents=True)
+            np.save(output_path, output)
+            label_data[file_name] = plate_label
 
         except KeyError as e:
             print(dynain_path, e)

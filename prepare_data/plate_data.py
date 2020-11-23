@@ -66,19 +66,6 @@ class PlateData:
         self.shell_origin = shell_origin
         print(len(self.shell_origin))
 
-    # 出力したい画像のピクセルの位置のshellを取ってきて、各値を出力する（x,yを指定して取ってくる)
-    def pickup_shell_and_output(self, x, y):
-
-        candidate_shells = [shell[0] for shell in self.shell_origin
-                            if shell[1][0] <= x <= shell[1][1]
-                            and shell[1][2] <= y <= shell[1][3]]
-        pickup_shell = [shell for shell in candidate_shells if shell.is_contain_point(x, y)]
-        if pickup_shell:
-            # 複数あった場合は一個目のものを採用
-            return pickup_shell[0].output()
-        else:
-            return np.zeros_like(self.shells[0].output())
-
     # 画像を出力する
     def output(self, output_size=(256, 256)):
 
@@ -137,6 +124,19 @@ class PlateData:
     #
     #     print(ret_array.shape)
     #     return ret_array
+
+    # 出力したい画像のピクセルの位置のshellを取ってきて、各値を出力する（x,yを指定して取ってくる)
+    def pickup_shell_and_output(self, x, y):
+
+        candidate_shells = [shell[0] for shell in self.shell_origin
+                            if shell[1][0] <= x <= shell[1][1]
+                            and shell[1][2] <= y <= shell[1][3]]
+        pickup_shell = [shell for shell in candidate_shells if shell.is_contain_point(x, y)]
+        if pickup_shell:
+            # 複数あった場合は一個目のものを採用
+            return pickup_shell[0].output()
+        else:
+            return np.zeros_like(self.shells[0].output())
 
     def output_labels(self):
 
@@ -331,7 +331,7 @@ class PlateData:
 
     #         fig.savefig('big.png',format='png')
 
-    def plot_normal_vecotr(self, figsize=(16, 16), save_name=None):
+    def plot_normal_vector(self, figsize=(16, 16), save_name=None):
         shell_t = np.array(self.shell_origin_normal).T
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
@@ -366,7 +366,7 @@ class Node(object):
         self.translational_flag = translational_flag
         self.rotate_flag = rotate_flag
         self.gaussian_curvature = gaussian_curvature
-        self.belog_shells = []
+        self.belong_shells = []
 
     def get_points(self):
         return [self.x, self.y, self.z]

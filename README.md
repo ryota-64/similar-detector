@@ -9,38 +9,44 @@ pytorch implement of arcface
 raw_data
 └── 20200807
     ├── blank
-    │   ├── BLANK
-    │   │   ├── a15_BLANK.png
-    │   │   ├── a15_BLANK_mesh.png
-    │   │   ├── d75_BLANK.png
-    │   │   ├── d75_BLANK_mesh.png
-    │   │   ├── g44_BLANK.png
-    │   │   └── g44_BLANK_mesh.png
-    │   ├── ElementID
-    │   │   ├── a15_BLANK_ElementID.csv
-    │   │   ├── d75_BLANK_ElementID.csv
-    │   │   └── g44_BLANK_ElementID.csv
-    │   └── NodeID
-    │       ├── a15_BLANK_NodeID.csv
-    │       ├── d75_BLANK_NodeID.csv
-    │       └── g44_BLANK_NodeID.csv
+    │   ├── BLANK
+    │   │   ├── a15_BLANK.png
+    │   │   ├── a15_BLANK_mesh.png
+    │   │   ├── d75_BLANK.png
+    │   │   ├── d75_BLANK_mesh.png
+    │   │   ├── g44_BLANK.png
+    │   │   └── g44_BLANK_mesh.png
+    │   ├── ElementID
+    │   │   ├── a15_BLANK_ElementID.csv
+    │   │   ├── d75_BLANK_ElementID.csv
+    │   │   └── g44_BLANK_ElementID.csv
+    │   └── NodeID
+    │       ├── a15_BLANK_NodeID.csv
+    │       ├── d75_BLANK_NodeID.csv
+    │       └── g44_BLANK_NodeID.csv
     ├── conters
-    │   ├── フォンミューゼス応力　#この名前は任意
-    │   │   ├── a15_FM1.csv
-    │   │   └── g54_FM1.csv
-    │   └── 板減率
-    │       ├── a15_FM1.csv
-    │       └── g54_FM1.csv
+    │   ├── フォンミューゼス応力　#この名前は任意
+    │   │   ├── a15_FM1.csv
+    │   │   └── g54_FM1.csv
+    │   └── 板減率
+    │       ├── a15_FM1.csv
+    │       └── g54_FM1.csv
     └── dynain
         ├── a15_FM1_dynain
         ├── a21_FM2_dynain
    
 ```
 上図のようなディレクトリ構造でデータを格納する
-その後、
+
+
+その後、データ準備用のdocker コンテナ内を作成
 ```bash
-cd data
-python make_file_names.py
+docker build -t prepare_data ./prepare_data/docker/
+docker run -v $PWD:/prepare/similar-detector -it prepare_data bash
+```
+in docker container (image from prepare_data/docker/Dockerfile)
+```bash 
+python prepare_data.py
 ```
 を実行し、データセットリストを作成する
 
