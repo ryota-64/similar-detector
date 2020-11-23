@@ -7,3 +7,6 @@ data/raw_data/*
 !data/**/*.py
 estimate_visualize/*
 
+*.jpeg
+*.png
+*.npy

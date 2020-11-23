@@ -14,15 +14,16 @@ if __name__ == '__main__':
     dynain_data = DynainData(dynain_path)
     plate_data = PlateData(blank_node_path)
     plate_data.set_dynain_data(dynain_data)
+    plate_data.set_dynain_data_old(dynain_data)
     # for conter in conter_paths:
     #     print(
     #         conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3].name)
     #     plate_data.set_conter(
     #         conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3].name,
     #         conter)
+    plate_data.plot_normal_vecotr(save_name='result/vector_sample.png')
     output = plate_data.output(output_size=(256, 256))
-    np.save('out.npy', output)
-    output = plate_data.output()
+    np.save('result/out.npy', output)
     plate_label = plate_data.output_labels()
     print('lo')
     print(output.shape)

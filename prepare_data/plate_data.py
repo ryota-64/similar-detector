@@ -20,9 +20,11 @@ class PlateData:
             node_file_raw = pd.read_csv(f, encoding="shift-jis")
             node_file = node_file_raw[3:]
             node_file.columns = ['node_id', 'x', 'y', 'z']
+            node_file = node_file.astype({'x': float, 'y': float, 'z': float})
         self.blank_node_file = node_file
         self.conters_data = {}
         self.shell_origin = None
+        self.shell_origin_normal = None
         self.shells = []
 
     def _read_conter_file(self, conter_csv_path):
@@ -32,22 +34,21 @@ class PlateData:
             conter_file.columns = ['node_id', 'conter_value', 'x', 'y', 'z']
         return conter_file
 
-    # def set_dynain_data_old(self, dynain_data):
-    #     # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
-    #     # (x,y,z）はblankを採用
-    #     shell_origin = []
-    #     node_file_matrix = self.blank_node_file.values
-    #     node_dict = {node[0]: node for node in node_file_matrix}
-    #     print(len(list(node_dict.keys())))
-    #     for shell in dynain_data.shells:
-    #         # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式
-    #         nodes = shell.nodes
-    #
-    #         (x, y, z) = np.average([node_dict[str(node.node_id)].astype('float64')[1:4] for node in nodes], axis=0)
-    #
-    #         shell_origin.append([shell.shell_id, shell.normal_vector, x, y, z])
-    #
-    #     self.shell_origin = shell_origin
+    def set_dynain_data_old(self, dynain_data):
+        # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
+        # (x,y,z）はblankを採用
+        shell_origin_normal = []
+        node_file_matrix = self.blank_node_file.values
+        node_dict = {node[0]: node for node in node_file_matrix}
+        for shell in dynain_data.shells:
+            # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式
+            nodes = shell.nodes
+
+            (x, y, z) = np.average([node_dict[str(node.node_id)].astype('float64')[1:4] for node in nodes], axis=0)
+
+            shell_origin_normal.append([shell.shell_id, shell.normal_vector, x, y, z])
+
+        self.shell_origin_normal = shell_origin_normal
 
     def set_dynain_data(self, dynain_data):
         # [shell_object, (x_min, x_max, y_min, y_max)]
@@ -331,7 +332,7 @@ class PlateData:
     #         fig.savefig('big.png',format='png')
 
     def plot_normal_vecotr(self, figsize=(16, 16), save_name=None):
-        shell_t = np.array(self.shell_origin).T
+        shell_t = np.array(self.shell_origin_normal).T
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
         y = shell_t[3]
@@ -406,11 +407,17 @@ class Shell:
         x = np.average([float(node[1]) for node in self.blank_nodes])
         y = np.average([float(node[2]) for node in self.blank_nodes])
         z = np.average([float(node[3]) for node in self.blank_nodes])
-        gaussian_curvature = np.average([node.gaussian_curvature for node in self.nodes])
-        return np.array([x, y, z, gaussian_curvature, self.shell_id], dtype=np.float32)
+
+        gaussian_curvature = self.gaussian_curvature
+        # return np.array([x, y, z, gaussian_curvature, self.shell_id], dtype=np.float32)
+
+        return np.array([*self.normal_vector, gaussian_curvature, self.shell_id], dtype=np.float32)
 
     def calc_shell_gaussian_curvature(self, nodes):
-        return np.average([node.gaussian_curvature for node in nodes])
+        gaussian_curvature = np.average([node.gaussian_curvature for node in nodes])
+        if np.isnan(gaussian_curvature):
+            gaussian_curvature = 0
+        return gaussian_curvature
 
     def set_blank_nodes(self, blank_nodes):
         self.blank_nodes = blank_nodes
@@ -442,15 +449,18 @@ class DynainData:
 
         node_matrix = matrix[asterisk_indexes[0] + 1:asterisk_indexes[1]]
 
-        self.raw_nodes = [self.split_node_str(node_data[0])[2:5] for node_data in node_matrix]
+        self.raw_nodes = [self.split_node_str(node_data[0])[1:4] for node_data in node_matrix]
         shell_data = matrix[asterisk_indexes[1] + 1:asterisk_indexes[2]]
         self.raw_shells = [self.split_shell_str_c(shell_data[i][0]) for i in range(0, len(shell_data), 2)]
+        # pymeshを使って、曲率をだす
         vertices, faces = self._data_for_pymesh()
         mesh = pymesh.form_mesh(vertices, faces)
-        triangled_mesh = pymesh.quad_to_tri(mesh)
-        triangled_mesh.add_attribute("vertex_gaussian_curvature")
-        nodes_gaussian_curvature = triangled_mesh.get_attribute("vertex_gaussian_curvature")
-        print(triangled_mesh.get_attribute("vertex_gaussian_curvature").shape)
+        triangle_mesh = pymesh.quad_to_tri(mesh)
+
+        # triangle_mesh.add_attribute("vertex_gaussian_curvature")
+        # nodes_gaussian_curvature = triangle_mesh.get_attribute("vertex_gaussian_curvature")
+        triangle_mesh.add_attribute("vertex_mean_curvature")
+        nodes_gaussian_curvature = triangle_mesh.get_attribute("vertex_mean_curvature")
 
         self.nodes = {int(node_data[0][0:8]): Node(*self.split_node_str(node_data[0]), gaussian_curvature)
                       for node_data, gaussian_curvature in zip(node_matrix, nodes_gaussian_curvature)}
