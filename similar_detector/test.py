@@ -6,13 +6,48 @@ Created on 18-5-30 下午4:55
 """
 from __future__ import print_function
 import os
-import cv2
-from models import *
-import torch
-import numpy as np
 import time
-from config import Config
+
+import cv2
+import numpy as np
+from tqdm import tqdm
+import torch
 from torch.nn import DataParallel
+from sklearn.metrics import multilabel_confusion_matrix
+
+from .models import *
+from .config import Config
+from .datasets import dataset
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+    def __repr__(self):
+        return 'avg : {}\tnum : {}'.format(self.avg, self.count)
+
+
+def accuracy(preds, labels):
+    accs = []
+    for i in range(len(preds)):
+        accs.append(preds[i] == labels[i])
+    print(accs.count(True))
+    return accs.count(True)
 
 
 def get_lfw_list(pair_list):
@@ -148,27 +183,121 @@ def lfw_test(model, img_paths, identity_list, compair_list, batch_size):
     return acc
 
 
-if __name__ == '__main__':
-
+def main():
     opt = Config()
-    if opt.backbone == 'resnet18':
-        model = resnet_face18(opt.use_se)
+    if torch.cuda.is_available() and opt.use_gpu:  # GPUが利用可能か確認
+        device = 'cuda'
+    else:
+        device = 'cpu'
+    print('device: {}'.format(device))
+
+    # model setup
+
+    if opt.backbone == 'resnetface18':
+        model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
+    elif opt.backbone == 'resnet18':
+        model = resnet18(opt.input_shape[0], pretrained=False)
     elif opt.backbone == 'resnet34':
-        model = resnet34()
+        model = resnet34(opt.input_shape[0])
     elif opt.backbone == 'resnet50':
-        model = resnet50()
+        model = resnet50(opt.input_shape[0])
+    else:
+        raise TypeError('not match model type')
+    model.to(device)
+    if device == 'cuda':
+        model = DataParallel(model)
 
-    model = DataParallel(model)
-    # load_model(model, opt.test_model_path)
-    model.load_state_dict(torch.load(opt.test_model_path))
-    model.to(torch.device("cuda"))
-
-    identity_list = get_lfw_list(opt.lfw_test_list)
-    img_paths = [os.path.join(opt.lfw_root, each) for each in identity_list]
+    # load weight
+    if device == 'cuda':
+        model.load_state_dict(torch.load(opt.test_model_path))
+    else:
+        model.load_state_dict(torch.load(opt.test_model_path, map_location={'cuda:0': 'cpu'}))
 
     model.eval()
-    lfw_test(model, img_paths, identity_list, opt.lfw_test_list, opt.test_batch_size)
+
+    # metric_fc area
+    if opt.metric == 'add_margin':
+        metric_fc = AddMarginProduct(512, opt.num_classes, s=30, m=0.35)
+    elif opt.metric == 'arc_margin':
+        metric_fc = ArcMarginProduct(512, opt.num_classes, s=30, m=0.5, easy_margin=opt.easy_margin)
+    elif opt.metric == 'sphere':
+        metric_fc = SphereProduct(512, opt.num_classes, m=4)
+    else:
+        metric_fc = nn.Linear(512, opt.num_classes)
+
+    if device == 'cuda':
+        metric_fc = DataParallel(metric_fc)
+    metric_fc.to(device)
+
+    # load weight
+    if device == 'cuda':
+        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path))
+    else:
+        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path, map_location={'cuda:0': 'cpu'}))
+    metric_fc.eval()
+
+    # data loader todo train_root →　test_rootに (yet to move data to test_root)
+    test_dataset = dataset.DataSet(opt.train_root, opt.test_list, phase='test', input_shape=opt.input_shape,
+                                   data_is_image=opt.data_is_image)
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=opt.test_batch_size,
+                                              shuffle=True,
+                                              num_workers=opt.num_workers)
+
+    accs = AverageMeter()
+    # predicted labels
+    pred_list = []
+    # answer labels
+    labels = []
+    acc_individual = {}
+    for ii, test_batch in enumerate(tqdm(test_loader)):
+        if ii >100:
+            break
+        data_input, label = test_batch
+        data_input = data_input.to(device)
+        label = label.to(device).long()
+        feature = model(data_input)
+        output_labels = metric_fc(feature, label)
+        preds = torch.sigmoid(output_labels).data > 0.5
+        preds = preds.to(torch.float32)
+        preds = preds.to('cpu').detach().numpy().copy()
+        label = label.to('cpu').detach().numpy().copy()
 
 
+        # print(len(label[0]))
+        # print(len(preds[0]))
 
+        labels.extend(label)
+        pred_list.extend(preds)
+    # 正解ラベルと照合
 
+    confusion_matrix = multilabel_confusion_matrix(labels, pred_list)
+    print(confusion_matrix)
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import recall_score
+    from sklearn.metrics import precision_score
+    from sklearn.metrics import f1_score
+    print(accuracy_score(labels, pred_list))
+    print(precision_score(labels, pred_list, average='micro'))
+    print(recall_score(labels, pred_list, average='micro'))
+    print(f1_score(labels, pred_list, average='micro'))
+
+    a = np.array(labels)
+    b = np.sum(a, axis=0)
+    print(b.shape)
+    print(b)
+
+    acc = accuracy(pred_list, labels)
+    acc_individual = accuracy_indivisual(pred_list, labels)
+    print(acc / len(pred_list))
+
+    for key, value in acc_individual.items():
+        print('key: {}  {}/{}  {}%\n'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
+
+    print('only_train_label\n')
+    for key, value in acc_individual.items():
+        if key in centroid_map:
+            print(
+                'key: {}  {}/{}  {}%'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
+            accs.update(value.count(True) / len(value), len(value))
+    print(accs)

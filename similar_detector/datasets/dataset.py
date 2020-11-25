@@ -43,7 +43,7 @@ class DataSet(data.Dataset):
             compose_list = [
                 PadingWithLongerSize(),
                 T.Resize(self.input_shape[1:])] if self.data_is_image else []
-            
+
             compose_list.extend([
                 T.ToTensor(),
                 # T.Grayscale(),

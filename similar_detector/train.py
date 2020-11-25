@@ -64,8 +64,12 @@ def train(args):
     else:
         criterion = torch.nn.CrossEntropyLoss()
 
-    if opt.backbone == 'resnet18':
+    if opt.backbone == 'resnet_face18':
         model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
+    elif opt.backbone == 'resnet18':
+        from torchvision import models
+        model = models.resnet18(pretrained=True)
+        # model = resnet18(opt.input_shape[0], pretrained=True)
     elif opt.backbone == 'resnet34':
         model = resnet34(opt.input_shape[0])
     elif opt.backbone == 'resnet50':
@@ -75,6 +79,14 @@ def train(args):
     model.to(device)
     if device == 'cuda':
         model = DataParallel(model)
+
+    # 転移学習(途中から)
+    if opt.transfer_train:
+        if device == 'cuda':
+            model.load_state_dict(torch.load(opt.base_weight_path))
+        else:
+            model.load_state_dict(torch.load(opt.test_model_path, map_location={'cuda:0': 'cpu'}))
+
     if args.train_second:
         opt.metric = 'liner'
         if device == 'cuda':
@@ -93,6 +105,13 @@ def train(args):
         metric_fc = SphereProduct(512, opt.num_classes, m=4)
     else:
         metric_fc = nn.Linear(512, opt.num_classes)
+
+    # load weight
+    if device == 'cuda':
+        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path))
+    else:
+        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path, map_location={'cuda:0': 'cpu'}))
+    metric_fc.train()
 
     metric_fc.to(device)
     if device == 'cuda':
@@ -128,9 +147,10 @@ def train(args):
 
             iters = i * len(trainloader) + ii
 
-            output = output.data.cpu().numpy()
             # output = np.argmax(output, axis=1)
-            output = output > 0.5
+            output = torch.sigmoid(output).data > 0.5
+            output = output.to(torch.float32)
+            output = output.data.cpu().numpy()
             label = label.data.cpu().numpy()
             acc = np.mean((output == label).astype(int))
             spend_time = (time.time() - start)

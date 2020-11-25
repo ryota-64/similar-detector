@@ -6,7 +6,8 @@ class Config(object):
 
     # model config
     env = 'default'
-    backbone = 'resnet18'
+    # backbone = 'resnet18'
+    backbone = 'resnet_face18'
     # classify = 'softmax' # 使ってない？
     num_classes = 40
     metric = 'arc_margin'
@@ -18,6 +19,8 @@ class Config(object):
     # loss = 'cross_entropy'
     # for multi target?
     loss = "BCEWithLogitsLoss"
+    transfer_train = True
+    base_weight_path = '../checkpoints/resnet_face18_celebA_1/resnet18_20.pth'
 
     # (channel_num, x, y)
     input_shape = (3, 256, 256)
@@ -35,9 +38,9 @@ class Config(object):
     dir_name_for_create_data_sets = 'dtypeB'
     data_is_image = True
 
-    checkpoints_path = '../checkpoints'
-    test_metric_fc_path = 'checkpoints/fc_10.pth'
-    test_model_path = 'checkpoints/resnet18_40.pth'
+    checkpoints_path = '../checkpoints/resnet_face18_celebA_2/'
+    test_metric_fc_path = '../checkpoints/metric_fc_20.pth'
+    test_model_path = '../checkpoints/resnet18_20.pth'
 
     # other config
     display = True
@@ -59,7 +62,7 @@ class Config(object):
     lr_step = 10
     lr_decay = 0.95  # when val_loss increase, lr = lr*lr_decay
     weight_decay = 5e-4
-    save_interval = 10
+    save_interval = 5
 
     train_batch_size = 128  # batch size
     test_batch_size = 32
@@ -100,6 +103,7 @@ class Config(object):
         self.test_metric_fc_path = os.path.join(root_path, self.test_metric_fc_path)
         self.debug_file = os.path.join(root_path, self.debug_file)
         self.checkpoints_path = os.path.join(root_path, self.checkpoints_path)
+        self.base_weight_path = os.path.join(root_path, self.base_weight_path)
         # temp comment out
         # self.num_classes = len([dir_name for dir_name in os.listdir(self.train_root)
         #                         if pathlib.Path(self.train_root).joinpath(dir_name).is_dir()])
