@@ -10,9 +10,11 @@ from torchvision import transforms as T
 
 class DataSet(data.Dataset):
 
-    def __init__(self, root, labels_json_path, phase='train', input_shape=(1, 128, 128), random_erase=True):
+    def __init__(self, root, labels_json_path, phase='train', input_shape=(1, 128, 128),
+                 data_is_image=False, random_erase=True):
         self.phase = phase
         self.input_shape = input_shape
+        self.data_is_image = data_is_image
 
         with open(labels_json_path, 'rb') as fd:
             labels_json = json.load(fd)
@@ -26,30 +28,38 @@ class DataSet(data.Dataset):
         normalize = T.Normalize(mean=[0.5], std=[0.5])
 
         if self.phase == 'train':
-            self.transforms = T.Compose([
-                # PadingWithLongerSize(),
+            compose_list = [
+                PadingWithLongerSize(),
+                T.Resize(self.input_shape[1:])] if self.data_is_image else []
+            compose_list.extend([
                 T.ToTensor(),
-                # T.Resize(self.input_shape[1:]),
                 # T.Grayscale(),
-
                 normalize,
                 # T.RandomErasing(),
-            ])
+                ])
+            self.transforms = T.Compose(compose_list)
 
         else:
-            self.transforms = T.Compose([
-                # PadingWithLongerSize(),
+            compose_list = [
+                PadingWithLongerSize(),
+                T.Resize(self.input_shape[1:])] if self.data_is_image else []
+            
+            compose_list.extend([
                 T.ToTensor(),
-                # T.Resize(self.input_shape[1:]),
                 # T.Grayscale(),
-
                 normalize,
                 # T.RandomErasing(),
             ])
+            self.transforms = T.Compose(compose_list)
 
     def __getitem__(self, index):
         data_array_path = self.data_arrays[index]
-        data_array = np.load(data_array_path)
+
+        if self.data_is_image:
+            data_array = Image.open(data_array_path)
+            # data_array = data_array.convert('L')
+        else:
+            data_array = np.load(data_array_path)
         # data_array = data_array.reshape([data_array.shape[2], data_array.shape[0], data_array.shape[1]])
         # img_data = img_data.convert('L')
         data_array = self.transforms(data_array)
@@ -65,6 +75,7 @@ class PadingWithLongerSize(object):
     長い方の辺を基準に正方形になるようにpaddingする
     左上が基準
     """
+
     def __init__(self):
         pass
 
@@ -87,4 +98,3 @@ class PadingWithLongerSize(object):
         for t in self.transform:
             image = t(image)
         return image
-

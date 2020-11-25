@@ -76,6 +76,8 @@ t-SNE,Umapでのmetrics learningの可視化
 python show_t_sne.py
 ```
 
+## 実験に使ったmulti label datasets 
+https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8
 ## using openmax to predict
 
 1 secondly train to make full connected layer

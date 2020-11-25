@@ -4,6 +4,7 @@ import argparse
 import os
 import time
 
+from tqdm import tqdm
 import numpy as np
 import torch
 from torch import nn
@@ -39,14 +40,16 @@ def train(args):
         device = 'cpu'
     print('device: {}'.format(device))
 
-    train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
+    train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape,
+                            data_is_image=opt.data_is_image)
     trainloader = torch.utils.data.DataLoader(train_dataset,
                                               batch_size=opt.train_batch_size,
                                               shuffle=True,
                                               num_workers=opt.num_workers,
                                               drop_last=True)
 
-    val_dataset = DataSet(opt.train_root, opt.val_list, phase='val', input_shape=opt.input_shape)
+    val_dataset = DataSet(opt.train_root, opt.val_list, phase='val', input_shape=opt.input_shape,
+                          data_is_image=opt.data_is_image)
     val_loader = torch.utils.data.DataLoader(val_dataset,
                                              batch_size=opt.test_batch_size,
                                              shuffle=True,
@@ -109,7 +112,7 @@ def train(args):
         train_acc = []
         train_loss = []
         train_spend = []
-        for ii, train_batch in enumerate(trainloader):
+        for ii, train_batch in enumerate(tqdm(trainloader)):
             data_input, label = train_batch
             data_input = data_input.to(device)
             label = label.to(device).long()
