@@ -7,8 +7,8 @@ class Config(object):
     # model config
     env = 'default'
     backbone = 'resnet18'
-    classify = 'softmax'
-    num_classes = 4
+    # classify = 'softmax' # 使ってない？
+    num_classes = 40
     metric = 'arc_margin'
     easy_margin = False
     # use_se = True
@@ -20,7 +20,7 @@ class Config(object):
     loss = "BCEWithLogitsLoss"
 
     # (channel_num, x, y)
-    input_shape = (5, 256, 256)
+    input_shape = (3, 256, 256)
 
     # optimizer = 'sgd'
     optimizer = 'Adam'
@@ -31,8 +31,9 @@ class Config(object):
 
     # data dir config
     data_sets_dir = '../data/DataSets/'
-    dir_name = 'dtypeC'
+    dir_name = 'sample_data'
     dir_name_for_create_data_sets = 'dtypeB'
+    data_is_image = True
 
     checkpoints_path = '../checkpoints'
     test_metric_fc_path = 'checkpoints/fc_10.pth'
@@ -53,15 +54,15 @@ class Config(object):
     debug_file = 'tmp/debug'  # if os.path.exists(debug_file): enter ipdb
     result_file = 'result.csv'
 
-    max_epoch = 50
+    max_epoch = 100
     lr = 1e-1  # initial learning rate
     lr_step = 10
     lr_decay = 0.95  # when val_loss increase, lr = lr*lr_decay
     weight_decay = 5e-4
     save_interval = 10
 
-    train_batch_size = 8  # batch size
-    test_batch_size = 1
+    train_batch_size = 128  # batch size
+    test_batch_size = 32
 
     # # for estimate (openMax)
     # WEIBULL_TAIL_SIZE = 5
