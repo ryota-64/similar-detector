@@ -193,7 +193,7 @@ def main():
 
     # model setup
 
-    if opt.backbone == 'resnetface18':
+    if opt.backbone == 'resnet_face18':
         model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
     elif opt.backbone == 'resnet18':
         model = resnet18(opt.input_shape[0], pretrained=False)
@@ -251,8 +251,6 @@ def main():
     labels = []
     acc_individual = {}
     for ii, test_batch in enumerate(tqdm(test_loader)):
-        if ii >100:
-            break
         data_input, label = test_batch
         data_input = data_input.to(device)
         label = label.to(device).long()
@@ -262,7 +260,6 @@ def main():
         preds = preds.to(torch.float32)
         preds = preds.to('cpu').detach().numpy().copy()
         label = label.to('cpu').detach().numpy().copy()
-
 
         # print(len(label[0]))
         # print(len(preds[0]))
@@ -277,7 +274,8 @@ def main():
     from sklearn.metrics import recall_score
     from sklearn.metrics import precision_score
     from sklearn.metrics import f1_score
-    print(accuracy_score(labels, pred_list))
+    from itertools import chain
+    print(accuracy_score(list(chain.from_iterable(labels)), list(chain.from_iterable(pred_list))))
     print(precision_score(labels, pred_list, average='micro'))
     print(recall_score(labels, pred_list, average='micro'))
     print(f1_score(labels, pred_list, average='micro'))

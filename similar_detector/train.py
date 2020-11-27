@@ -106,16 +106,15 @@ def train(args):
     else:
         metric_fc = nn.Linear(512, opt.num_classes)
 
+    if device == 'cuda':
+        metric_fc = DataParallel(metric_fc)
+    metric_fc.to(device)
     # load weight
     if device == 'cuda':
         metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path))
     else:
         metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path, map_location={'cuda:0': 'cpu'}))
     metric_fc.train()
-
-    metric_fc.to(device)
-    if device == 'cuda':
-        metric_fc = DataParallel(metric_fc)
 
     if opt.optimizer == 'sgd':
         optimizer = torch.optim.SGD([{'params': model.parameters()}, {'params': metric_fc.parameters()}],

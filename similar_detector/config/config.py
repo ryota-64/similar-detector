@@ -11,7 +11,9 @@ class Config(object):
     # classify = 'softmax' # 使ってない？
     num_classes = 40
     metric = 'arc_margin'
-    easy_margin = False
+    # metric = 'linear'
+    # easy_margin = False
+    easy_margin = True
     # use_se = True
     use_se = False
     # chose loss function
@@ -38,9 +40,10 @@ class Config(object):
     dir_name_for_create_data_sets = 'dtypeB'
     data_is_image = True
 
-    checkpoints_path = '../checkpoints/resnet_face18_celebA_2/'
-    test_metric_fc_path = '../checkpoints/metric_fc_20.pth'
-    test_model_path = '../checkpoints/resnet18_20.pth'
+    checkpoints_path = '../checkpoints/resnet_face18_celebA_2/' # arc face
+    # checkpoints_path = '../checkpoints/resnet_face18_celebA_3/'  # resnet_face18, linear
+    test_metric_fc_path = '../checkpoints/resnet_face18_celebA_2/metric_fc_60.pth'
+    test_model_path = '../checkpoints/resnet_face18_celebA_2/resnet_face18_60.pth'
 
     # other config
     display = True
