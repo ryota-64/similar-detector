@@ -255,7 +255,10 @@ def main():
         data_input = data_input.to(device)
         label = label.to(device).long()
         feature = model(data_input)
-        output_labels = metric_fc(feature, label)
+        if opt.metric == 'linear':
+            output_labels = metric_fc(feature)
+        else:
+            output_labels = metric_fc(feature, label)
         preds = torch.sigmoid(output_labels).data > 0.5
         preds = preds.to(torch.float32)
         preds = preds.to('cpu').detach().numpy().copy()
@@ -275,10 +278,10 @@ def main():
     from sklearn.metrics import precision_score
     from sklearn.metrics import f1_score
     from itertools import chain
-    print(accuracy_score(list(chain.from_iterable(labels)), list(chain.from_iterable(pred_list))))
-    print(precision_score(labels, pred_list, average='micro'))
-    print(recall_score(labels, pred_list, average='micro'))
-    print(f1_score(labels, pred_list, average='micro'))
+    print('total accuracy: ', accuracy_score(list(chain.from_iterable(labels)), list(chain.from_iterable(pred_list))))
+    print('precision score: ', precision_score(labels, pred_list, average='micro'))
+    print('recall score: ', recall_score(labels, pred_list, average='micro'))
+    print('f1 score: ', f1_score(labels, pred_list, average='micro'))
 
     a = np.array(labels)
     b = np.sum(a, axis=0)

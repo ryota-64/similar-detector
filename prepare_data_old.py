@@ -65,41 +65,42 @@ def _take_one_or_ret_false(iterator):
 def main():
     # check hire
     raw_data_path = pathlib.Path(opt.raw_data_path)
-    parts_list = [parts_dir for parts_dir in raw_data_path.iterdir() if parts_dir.stem[:1] != '.']
+    dynains = [dynain_path for dynain_path in raw_data_path.joinpath('dynain').iterdir() if check_data(dynain_path)]
 
+    print(dynains)
     label_data = {}
     # get list of data
-    for parts_dir in parts_list:
+    for dynain_path in dynains:
+        try:
+            blank_node_path = get_blank_csv(dynain_path)
+            conter_paths = get_conter_csv(dynain_path)
+            print(dynain_path, blank_node_path, conter_paths)
+            dynain_data = DynainData(dynain_path)
+            plate_data = PlateData(blank_node_path)
+            plate_data.set_dynain_data(dynain_data)
+            for conter in conter_paths:
+                print(conter.relative_to(opt.raw_data_path).parents[
+                          len(conter.relative_to(opt.raw_data_path).parents) - 3].name)
+                plate_data.set_conter(conter.relative_to(opt.raw_data_path).parents[
+                                          len(conter.relative_to(opt.raw_data_path).parents) - 3].name, conter)
 
-        for model_dir in parts_dir.iterdir():
-            if model_dir.stem[:1] != '.':
-                try:
-                    print(model_dir)
-                    dynain_path = model_dir.joinpath('{}_dynain'.format(model_dir.stem))
-                    conter_paths = [model_dir.joinpath('{}_{}.csv'.format(model_dir.stem, i+1)) for i in range(4)]
-                    blank_node_path = model_dir.joinpath('{}_blank.csv'.format(model_dir.stem))
-                    dynain_data = DynainData(dynain_path)
-                    plate_data = PlateData(blank_node_path)
-                    plate_data.set_dynain_data(dynain_data)
-                    for conter in conter_paths:
-                        plate_data.set_conter(conter.name, conter)
-                        print('setted conter')
-                    output = plate_data.output(output_size=(256, 256))
-                    # extract data and save it
-                    # todo 一部をtest用のデータセットに保存する
-                    file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
-                    output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
-                    if not output_path.exists() and not output_path.parents[0].is_dir():
-                        output_path.parents[0].mkdir(parents=True, exist_ok=True)
-                    print('save to {}'.format(output_path))
-                    np.save(output_path, output)
+            output = plate_data.output(output_size=(256, 256))
+            plate_label = plate_data.output_labels()
+            # extract data and save it
+            # todo 一部をtest用のデータセットに保存する
+            file_name = '{}_plate_data.npy'.format(dynain_path.stem[:-7])
+            output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
+            if not output_path.exists() and not output_path.parents[0].is_dir():
+                output_path.parents[0].mkdir(parents=True)
+            np.save(output_path, output)
+            label_data[file_name] = plate_label
 
-                except KeyError as e:
-                    print('error occurred', model_dir, e)
-    #
-    # pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
-    # with open(opt.train_list, mode='w')as f:
-    #     json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
+        except KeyError as e:
+            print(dynain_path, e)
+
+    pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
+    with open(opt.train_list, mode='w')as f:
+        json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == '__main__':

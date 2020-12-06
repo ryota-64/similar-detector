@@ -10,18 +10,19 @@ class Config(object):
     backbone = 'resnet_face18'
     # classify = 'softmax' # 使ってない？
     num_classes = 40
-    metric = 'arc_margin'
-    # metric = 'linear'
+    # metric = 'arc_margin'
+    metric = 'linear'
     # easy_margin = False
     easy_margin = True
-    # use_se = True
-    use_se = False
+    use_se = True
+    # use_se = False
     # chose loss function
     # loss = 'focal_loss'
     # loss = 'cross_entropy'
     # for multi target?
     loss = "BCEWithLogitsLoss"
-    transfer_train = True
+    # transfer_train = True
+    transfer_train = False
     base_weight_path = '../checkpoints/resnet_face18_celebA_1/resnet18_20.pth'
 
     # (channel_num, x, y)
@@ -32,18 +33,21 @@ class Config(object):
 
     # for prepare data
     # raw_data_path = 'data/raw_data/20200807'
-    raw_data_path = '../data/raw_data/20201023'
+    # raw_data_path = '../data/raw_data/20201023'
+    raw_data_path = '../data/raw_data/20201204'
 
     # data dir config
     data_sets_dir = '../data/DataSets/'
     dir_name = 'sample_data'
-    dir_name_for_create_data_sets = 'dtypeB'
+    dir_name_for_create_data_sets = 'dtypeE'
     data_is_image = True
 
-    checkpoints_path = '../checkpoints/resnet_face18_celebA_2/' # arc face
-    # checkpoints_path = '../checkpoints/resnet_face18_celebA_3/'  # resnet_face18, linear
-    test_metric_fc_path = '../checkpoints/resnet_face18_celebA_2/metric_fc_60.pth'
-    test_model_path = '../checkpoints/resnet_face18_celebA_2/resnet_face18_60.pth'
+    # checkpoints_path = '../checkpoints/resnet_face18_celebA_2/' # arc face
+    # test_metric_fc_path = '../checkpoints/resnet_face18_celebA_2/metric_fc_60.pth'
+    # test_model_path = '../checkpoints/resnet_face18_celebA_2/resnet_face18_60.pth'
+    checkpoints_path = '../checkpoints/resnet_face18_celebA_3/'  # resnet_face18, linear
+    test_metric_fc_path = '../checkpoints/resnet_face18_celebA_3/metric_fc_60.pth'
+    test_model_path = '../checkpoints/resnet_face18_celebA_3/resnet_face18_60.pth'
 
     # other config
     display = True
@@ -68,7 +72,7 @@ class Config(object):
     save_interval = 5
 
     train_batch_size = 128  # batch size
-    test_batch_size = 32
+    test_batch_size = 8
 
     # # for estimate (openMax)
     # WEIBULL_TAIL_SIZE = 5

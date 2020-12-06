@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import argparse
 import os
+import pathlib
 import time
 
 from tqdm import tqdm
@@ -18,7 +19,8 @@ from .utils import Visualizer
 
 
 def save_model(model, save_path, name, iter_cnt):
-    save_name = os.path.join(save_path, name + '_' + str(iter_cnt) + '.pth')
+    save_name = pathlib.Path(save_path).joinpath(name + '_' + str(iter_cnt) + '.pth')
+    save_name.parents[0].mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), save_name)
     return save_name
 
@@ -109,11 +111,13 @@ def train(args):
     if device == 'cuda':
         metric_fc = DataParallel(metric_fc)
     metric_fc.to(device)
+
     # load weight
-    if device == 'cuda':
-        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path))
-    else:
-        metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path, map_location={'cuda:0': 'cpu'}))
+    if opt.transfer_train:
+        if device == 'cuda':
+            metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path))
+        else:
+            metric_fc.load_state_dict(torch.load(opt.test_metric_fc_path, map_location={'cuda:0': 'cpu'}))
     metric_fc.train()
 
     if opt.optimizer == 'sgd':
@@ -135,7 +139,7 @@ def train(args):
             data_input = data_input.to(device)
             label = label.to(device).long()
             feature = model(data_input)
-            if args.train_second:
+            if args.train_second or opt.metric == 'linear':
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
@@ -182,7 +186,7 @@ def train(args):
             data_input = data_input.to(device)
             label = label.to(device).long()
             feature = model(data_input)
-            if args.train_second:
+            if args.train_second or opt.metric == 'linear':
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
