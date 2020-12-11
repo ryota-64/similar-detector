@@ -19,7 +19,10 @@ class DataSet(data.Dataset):
         with open(labels_json_path, 'rb') as fd:
             labels_json = json.load(fd)
         data_arrays = [os.path.join(root, data_array_name) for data_array_name in labels_json['data']]
-        self.data_arrays = np.random.permutation(data_arrays)
+        data_arrays = np.random.permutation(data_arrays)
+        print('len {}'.format(len(data_arrays)))
+        self.data_arrays = [path for path in data_arrays if pathlib.Path(path).exists()]
+        print('len {}'.format(len(self.data_arrays)))
         self.label_dict = labels_json['data']
 
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],

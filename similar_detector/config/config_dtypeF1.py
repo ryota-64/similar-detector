@@ -8,7 +8,6 @@ class Config(object):
     env = 'default'
     # backbone = 'resnet18'
     backbone = 'resnet_face18'
-    # backbone = 'resnet50'
     # classify = 'softmax' # 使ってない？
     num_classes = 14
     # metric = 'arc_margin'
@@ -54,8 +53,8 @@ class Config(object):
     # test_metric_fc_path = '../checkpoints/resnet_face18_dtypeE/metric_fc_60.pth'
     # test_model_path = '../checkpoints/resnet_face18_dtypeE/resnet_face18_60.pth'
     checkpoints_path = '../checkpoints/resnet_face18_dtypeF/'  # resnet_face18, linear
-    test_metric_fc_path = '../checkpoints/resnet_face18_dtypeF/metric_fc_20.pth'
-    test_model_path = '../checkpoints/resnet_face18_dtypeF/resnet_face18_20.pth'
+    test_metric_fc_path = '../checkpoints/resnet_face18_dtypeF/metric_fc_60.pth'
+    test_model_path = '../checkpoints/resnet_face18_dtypeF/resnet_face18_60.pth'
 
     # other config
     display = True

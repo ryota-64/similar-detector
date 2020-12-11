@@ -69,11 +69,17 @@ def main():
 
     label_data = {}
     # get list of data
+    error_model_list = []
     for parts_dir in parts_list:
 
         for model_dir in parts_dir.iterdir():
             if model_dir.stem[:1] != '.':
                 try:
+                    file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
+                    output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
+                    if output_path.exists():
+                        continue
+
                     print(model_dir)
                     dynain_path = model_dir.joinpath('{}_dynain'.format(model_dir.stem))
                     conter_paths = [model_dir.joinpath('{}_{}.csv'.format(model_dir.stem, i+1)) for i in range(4)]
@@ -94,12 +100,14 @@ def main():
                     print('save to {}'.format(output_path))
                     np.save(output_path, output)
 
-                except KeyError as e:
+                except Exception as e:
+                    error_model_list.append(str(model_dir))
                     print('error occurred', model_dir, e)
     #
     # pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
     # with open(opt.train_list, mode='w')as f:
     #     json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
+    print(len(error_model_list))
 
 
 if __name__ == '__main__':

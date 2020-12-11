@@ -8,7 +8,6 @@ class Config(object):
     env = 'default'
     # backbone = 'resnet18'
     backbone = 'resnet_face18'
-    # backbone = 'resnet50'
     # classify = 'softmax' # 使ってない？
     num_classes = 14
     # metric = 'arc_margin'
@@ -40,22 +39,17 @@ class Config(object):
     # data dir config
     data_sets_dir = '../data/DataSets/'
     # dir_name = 'sample_data' # celebA
-    dir_name = 'dtypeF'
-    dir_name_for_create_data_sets = 'dtypeF'
+    dir_name = 'dtypeE'
+    dir_name_for_create_data_sets = 'dtypeE'
     data_is_image = False
 
     # checkpoints_path = '../checkpoints/resnet_face18_celebA_2/' # arc face
     # test_metric_fc_path = '../checkpoints/resnet_face18_celebA_2/metric_fc_60.pth'
     # test_model_path = '../checkpoints/resnet_face18_celebA_2/resnet_face18_60.pth'
     # checkpoints_path = '../checkpoints/resnet_face18_celebA_3/'  # resnet_face18, linear
-    # test_metric_fc_path = '../checkpoints/resnet_face18_celebA_3/metric_fc_60.pth'
-    # test_model_path = '../checkpoints/resnet_face18_celebA_3/resnet_face18_60.pth'
-    # checkpoints_path = '../checkpoints/resnet_face18_dtypeE/'  # resnet_face18, linear
-    # test_metric_fc_path = '../checkpoints/resnet_face18_dtypeE/metric_fc_60.pth'
-    # test_model_path = '../checkpoints/resnet_face18_dtypeE/resnet_face18_60.pth'
-    checkpoints_path = '../checkpoints/resnet_face18_dtypeF/'  # resnet_face18, linear
-    test_metric_fc_path = '../checkpoints/resnet_face18_dtypeF/metric_fc_20.pth'
-    test_model_path = '../checkpoints/resnet_face18_dtypeF/resnet_face18_20.pth'
+    checkpoints_path = '../checkpoints/resnet_face18_dtypeE/'  # resnet_face18, linear
+    test_metric_fc_path = '../checkpoints/resnet_face18_celebA_3/metric_fc_60.pth'
+    test_model_path = '../checkpoints/resnet_face18_celebA_3/resnet_face18_60.pth'
 
     # other config
     display = True
@@ -112,7 +106,7 @@ class Config(object):
         self.train_root = os.path.join(self.data_sets_dir, self.dir_name, 'train/models')
         self.train_list = os.path.join(self.data_sets_dir, self.dir_name, 'train/train_labels.json')
         self.val_list = os.path.join(self.data_sets_dir, self.dir_name, 'train/val_labels.json')
-        self.test_root = os.path.join(self.data_sets_dir, self.dir_name, 'train/models')
+        self.test_root = os.path.join(self.data_sets_dir, self.dir_name, 'test/models')
         self.test_list = os.path.join(self.data_sets_dir, self.dir_name, 'test/test_labels.json')
         self.test_model_path = os.path.join(root_path, self.test_model_path)
         self.test_metric_fc_path = os.path.join(root_path, self.test_metric_fc_path)

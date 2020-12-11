@@ -160,8 +160,8 @@ def train(args):
             train_acc.extend([acc] * len(label))
             train_loss.extend([loss.item()] * len(label))
             train_spend.extend([spend_time])
-            time_str = time.asctime(time.localtime(time.time()))
             start = time.time()
+        time_str = time.asctime(time.localtime(time.time()))
         print('{} train epoch {}  {} seconds/epoch loss {} acc {}'.format(
             time_str, i, np.sum(train_spend), np.mean(train_loss), np.mean(train_acc)))
         if opt.display:

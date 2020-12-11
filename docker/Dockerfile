@@ -1,5 +1,6 @@
 FROM pytorch/pytorch
 RUN apt-get update && apt-get install -y tzdata && apt-get install -y libopencv-dev
+RUN apt install -y jupyter-notebook
 # ユーザーを作成
 ARG UID=1000
 RUN useradd -m -u ${UID} detector

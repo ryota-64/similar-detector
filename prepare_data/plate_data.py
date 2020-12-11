@@ -46,7 +46,7 @@ class PlateData:
             conter_raw = pd.read_csv(f, header=3, encoding="shift-jis")
             conter_file = conter_raw.drop("Unnamed: 5", axis=1)
             conter_file.columns = ['node_id', 'conter_value', 'x', 'y', 'z']
-            print('conter {} nodes '.format(conter_file.values.shape))
+            # print('conter {} nodes '.format(conter_file.values.shape))
         return conter_file
 
     # def set_dynain_data_old(self, dynain_data):
@@ -82,7 +82,7 @@ class PlateData:
             shell_origin.append([shell, shell.blank_area])
         self.shell_origin = shell_origin
         self.shells_dict = {str(int(shell.shell_id)): shell for shell in dynain_data.shells}
-        print(len(self.shell_origin))
+        # print(len(self.shell_origin))
 
     # 画像を出力する
     def output(self, output_size=(256, 256)):
@@ -244,7 +244,7 @@ class PlateData:
 
     def set_conter(self, conter_name, conter_csv_path):
         self.conters_data[conter_name] = self._read_conter_file(conter_csv_path)
-        print(self.conters_data[conter_name].values.shape)
+        # print(self.conters_data[conter_name].values.shape)
         for row in self.conters_data[conter_name].values:
             self.shells_dict[str(int(row[0]))].conter_values[conter_name] = row[1]
         # todo shellにconter値を入れる
@@ -326,6 +326,8 @@ class PlateData:
 
     @staticmethod
     def plot_plate_conter(conter_data, figsize=(16, 16), save_name=None):
+        print(conter_data.values)
+
         value = conter_data[1]
         x = conter_data[2]
         y = conter_data[3]
@@ -493,7 +495,7 @@ class DynainData:
         self.shells = [Shell(*self.split_shell_str_a(shell_data[i][0]), *self.split_shell_str_b(shell_data[i + 1][0]))
                        for i in range(0, len(shell_data), 2)]
 
-        print('dynain {} nodes'.format(len(node_matrix)))
+        # print('dynain {} nodes'.format(len(node_matrix)))
 
     def _data_for_pymesh(self):
         return np.array(self.raw_nodes), np.array(self.raw_shells)

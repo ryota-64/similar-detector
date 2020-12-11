@@ -284,6 +284,7 @@ def main():
     print('f1 score: ', f1_score(labels, pred_list, average='micro'))
 
     a = np.array(labels)
+    print(a.shape)
     b = np.sum(a, axis=0)
     print(b.shape)
     print(b)
