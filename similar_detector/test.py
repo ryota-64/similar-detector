@@ -241,7 +241,7 @@ def main():
                                    data_is_image=opt.data_is_image)
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=opt.test_batch_size,
-                                              shuffle=True,
+                                              shuffle=False,
                                               num_workers=opt.num_workers)
 
     accs = AverageMeter()
@@ -250,8 +250,10 @@ def main():
     # answer labels
     labels = []
     acc_individual = {}
+    data_path_list = []
     for ii, test_batch in enumerate(tqdm(test_loader)):
         data_input, label = test_batch
+        # data_path_list.append(data_path)
         data_input = data_input.to(device)
         label = label.to(device).long()
         feature = model(data_input)
@@ -282,6 +284,14 @@ def main():
     print('precision score: ', precision_score(labels, pred_list, average='micro'))
     print('recall score: ', recall_score(labels, pred_list, average='micro'))
     print('f1 score: ', f1_score(labels, pred_list, average='micro'))
+    #
+    # for label, pred, data_path in zip (labels, pred_list,data_path_list ):
+    #     acc = 0
+    #     for l, p in zip (label, pred):
+    #         if l == p:
+    #             acc +=1
+    #
+    #     print(acc /14, data_path[0][-25:])
 
     a = np.array(labels)
     print(a.shape)

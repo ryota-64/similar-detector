@@ -18,7 +18,7 @@ class PlateData:
         encording = 'ISO-8859-1'
         with open(blank_node_csv, encoding=encording) as f:
             print(blank_node_csv)
-            node_file_raw = pd.read_csv(f, encoding=encording,  header=3)
+            node_file_raw = pd.read_csv(f, encoding=encording, header=3)
             node_file = node_file_raw
             node_file.columns = ['node_id', 'coord', 'x', 'y', 'z', 'unnamed']
             node_file = node_file.astype({'x': float, 'y': float, 'z': float})
@@ -37,7 +37,7 @@ class PlateData:
         self.conters_data = {}
         self.shell_origin = None
         self.shell_origin_normal = None
-        self.nodes = None # set by dynain
+        self.nodes = None  # set by dynain
         self.shells = []
         self.shells_dict = None
 
@@ -70,6 +70,7 @@ class PlateData:
         # の形式 でshellの個数分の配列をshell_origin として保存 (2つ目はblank_area)
         shell_origin = []
         self.blank_node_file = self.blank_node_file[:len(dynain_data.nodes)]
+        # todo? input の形によらない( 間に座標に和があっても大丈夫なように）
         node_file_matrix = self.blank_node_file.values
         blank_node_dict = {str(int(node[0])): node for node in node_file_matrix}
         self.nodes = dynain_data.nodes
@@ -255,13 +256,31 @@ class PlateData:
 
     def get_plate_conter(self, conter_name):
         # node_id, conter_data, x, y, z
-
-        data = [self.blank_node_file['node_id'].values,
+        #
+        # data = [self.blank_node_file['node_id'].values,
+        #         self.conters_data[conter_name]['conter_value'].values.astype('float64'),
+        #         self.blank_node_file['x'].values.astype('float64'),
+        #         self.blank_node_file['y'].values.astype('float64'),
+        #         self.blank_node_file['z'].values.astype('float64'),
+        #         ]
+        #
+        # todo conterの value部分が要素に変わっているので注意 画像の出力時。多分下のやつでいけてるはず
+        data = [self.conters_data[conter_name]['node_id'],
                 self.conters_data[conter_name]['conter_value'].values.astype('float64'),
-                self.blank_node_file['x'].values.astype('float64'),
-                self.blank_node_file['y'].values.astype('float64'),
-                self.blank_node_file['z'].values.astype('float64'),
-                ]
+                [np.average(
+                        [float(node[2]) for node in
+                         self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
+                    range(len(self.conters_data[conter_name]['node_id']))],
+
+                [np.average(
+                    [float(node[3]) for node in
+                     self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
+                    range(len(self.conters_data[conter_name]['node_id']))],
+                [np.average(
+                    [float(node[4]) for node in
+                     self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
+                    range(len(self.conters_data[conter_name]['node_id']))],
+        ]
         return data
 
     # PlateDataのインスタンス同士でのnormal_vectorの引き算
@@ -326,7 +345,6 @@ class PlateData:
 
     @staticmethod
     def plot_plate_conter(conter_data, figsize=(16, 16), save_name=None):
-        print(conter_data.values)
 
         value = conter_data[1]
         x = conter_data[2]
@@ -449,17 +467,17 @@ class Shell:
 
     def set_blank_nodes(self, blank_nodes):
         self.blank_nodes = blank_nodes
-        x_max = float(max([node[1] for node in blank_nodes]))
-        y_max = float(max([node[2] for node in blank_nodes]))
-        x_min = float(min([node[1] for node in blank_nodes]))
-        y_min = float(min([node[2] for node in blank_nodes]))
+        x_max = float(max([node[2] for node in blank_nodes]))
+        y_max = float(max([node[3] for node in blank_nodes]))
+        x_min = float(min([node[2] for node in blank_nodes]))
+        y_min = float(min([node[3] for node in blank_nodes]))
         self.blank_area = (x_min, x_max, y_min, y_max)
 
     def is_contain_point(self, x, y):
         if not self.blank_nodes:
             raise ValueError('Have not set origin nodes data')
         else:
-            node_points = [node.astype('float64')[1:4] for node in self.blank_nodes]
+            node_points = [node.astype('float64')[2:5] for node in self.blank_nodes]
             poly_points = [(point[0], point[1]) for point in node_points]
             polygon = Polygon(poly_points)
             point = Point(x, y)

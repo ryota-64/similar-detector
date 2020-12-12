@@ -25,9 +25,9 @@ if __name__ == '__main__':
     #     plate_data.set_conter(
     #         conter.relative_to(opt.raw_data_path).parents[len(conter.relative_to(opt.raw_data_path).parents) - 3].name,
     #         conter)
-    plate_data.plot_normal_vector(save_name='result/vector_sample.png')
     output = plate_data.output(output_size=(256, 256))
     np.save('result/out3.npy', output)
+    # plate_data.plot_normal_vector(save_name='result/vector_sample.png')
     # plate_label = plate_data.output_labels()
     print('lo')
     print(output.shape)

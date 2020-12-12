@@ -89,7 +89,6 @@ def main():
                     plate_data.set_dynain_data(dynain_data)
                     for conter in conter_paths:
                         plate_data.set_conter(conter.name, conter)
-                        print('setted conter')
                     output = plate_data.output(output_size=(256, 256))
                     # extract data and save it
                     # todo 一部をtest用のデータセットに保存する

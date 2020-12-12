@@ -5,6 +5,7 @@ sandbox/*
 */.idea/*
 data/DataSets/*
 data/raw_data/*
+data/celebA_raw/*
 !data/**/*.py
 estimate_visualize/*
 
