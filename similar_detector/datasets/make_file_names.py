@@ -89,7 +89,7 @@ def load_criteria_list(data_set_path):
 
 
 if __name__ == '__main__':
-    dirs = pathlib.Path('Datasets').iterdir()
+    dirs = pathlib.Path('DataSets').iterdir()
     for dir in dirs:
         print(dir)
         main(dir.joinpath('train'))

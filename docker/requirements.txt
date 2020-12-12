@@ -1,7 +1,11 @@
-torchvision==0.4.0
-scikit-learn==0.20.3
+torch==1.5.0
+torchvision
+scikit-learn==0.23.2
 hyperdash==0.15.3
 visdom==0.1.7
 matplotlib
-opencv-python
+pillow==6.2.1
+opencv-python==4.4.0.44
 graphviz
+umap-learn==0.4.6
+plotly==4.12.0

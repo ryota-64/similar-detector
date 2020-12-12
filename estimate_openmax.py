@@ -4,10 +4,10 @@ from torch.nn import DataParallel
 
 from OSDN.evt_fitting import *
 from OSDN.openmax_utils import *
-from config.config import Config
-from data.dataset import Dataset
+from config import Config
+from data import DataSet
 from models import *
-from visualize_output import create_mean_graph, show_histgram
+from visualize_output import show_histgram
 
 
 def openmax(input_score, weibull_model, categories, eu_weight=5e-2, alpharank=10, distance_type='eucos'):
@@ -99,7 +99,7 @@ def main():
                                         tailsize=opt.WEIBULL_TAIL_SIZE, distance_type=opt.distance_type)
 
     # data loader
-    test_dataset = Dataset(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
+    test_dataset = DataSet(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
 
     test_loader = data.DataLoader(test_dataset,
                                   batch_size=opt.test_batch_size,

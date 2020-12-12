@@ -1,27 +1,52 @@
-# arcface-pytorch
+# similar-detector
+
 pytorch implement of arcface 
 
 
-## データセットの準備
-```
-├── data
-│   ├── Datasets
-│   │   └── invoices
-│   │       ├── test
-│   │       │   ├── IMI
-│   │       │   ├── adachi
-│   │       │   └── yuyama
-│   │       ├── train
-│   │       │   ├── IMI
-│   │       │   ├── adachi
-│   │       │   └── yuyama
 
+## データセットの準備 (in data/)
 ```
-上図のようなディレクトリ構造で画像を用意する。各クラスに画像を格納する
-その後、
+raw_data
+└── 20200807
+    ├── blank
+    │   ├── BLANK
+    │   │   ├── a15_BLANK.png
+    │   │   ├── a15_BLANK_mesh.png
+    │   │   ├── d75_BLANK.png
+    │   │   ├── d75_BLANK_mesh.png
+    │   │   ├── g44_BLANK.png
+    │   │   └── g44_BLANK_mesh.png
+    │   ├── ElementID
+    │   │   ├── a15_BLANK_ElementID.csv
+    │   │   ├── d75_BLANK_ElementID.csv
+    │   │   └── g44_BLANK_ElementID.csv
+    │   └── NodeID
+    │       ├── a15_BLANK_NodeID.csv
+    │       ├── d75_BLANK_NodeID.csv
+    │       └── g44_BLANK_NodeID.csv
+    ├── conters
+    │   ├── フォンミューゼス応力　#この名前は任意
+    │   │   ├── a15_FM1.csv
+    │   │   └── g54_FM1.csv
+    │   └── 板減率
+    │       ├── a15_FM1.csv
+    │       └── g54_FM1.csv
+    └── dynain
+        ├── a15_FM1_dynain
+        ├── a21_FM2_dynain
+   
+```
+上図のようなディレクトリ構造でデータを格納する
+
+
+その後、データ準備用のdocker コンテナ内を作成
 ```bash
-cd data
-python make_file_names.py
+docker build -t prepare_data ./prepare_data/docker/
+docker run -v $PWD:/prepare/similar-detector -it prepare_data bash
+```
+in docker container (image from prepare_data/docker/Dockerfile)
+```bash 
+python prepare_data.py
 ```
 を実行し、データセットリストを作成する
 
@@ -30,8 +55,9 @@ python make_file_names.py
 
 gpu環境で
 ```bash
-docker run --gpus all -t -v /home/r_takenaka/arcface-pytorch/:/workspace/arcface-pytorch --name arcface -d -p 8097:8097 pytorch bash
-docker exec -it arcface bash
+docker build -t similar ./docker
+docker run --gpus all -t -v $PWD:/workspace/similar-detector --shm-size=4gb --name similar -d -p 8097:8097 similar  bash
+docker exec -it similar bash
 ```
 docker 内で
 ```bash
@@ -50,6 +76,8 @@ t-SNE,Umapでのmetrics learningの可視化
 python show_t_sne.py
 ```
 
+## 実験に使ったmulti label datasets 
+https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8
 ## using openmax to predict
 
 1 secondly train to make full connected layer

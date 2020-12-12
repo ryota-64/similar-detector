@@ -1,10 +1,14 @@
-!.gitignore
 sandbox/*
 *.pyc
 *.pth
-data/Datasets/*
-estimate_visualize/*
 .idea/*
-data/*
+*/.idea/*
+data/DataSets/*
+data/raw_data/*
+data/celebA_raw/*
 !data/**/*.py
+estimate_visualize/*
 
+*.jpeg
+*.png
+*.npy

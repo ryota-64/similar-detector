@@ -159,11 +159,11 @@ class SEBlock(nn.Module):
 
 
 class ResNetFace(nn.Module):
-    def __init__(self, block, layers, use_se=True):
+    def __init__(self, block, layers, chanel_num=1, use_se=True):
         self.inplanes = 64
         self.use_se = use_se
         super(ResNetFace, self).__init__()
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(chanel_num, 64, kernel_size=3, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.prelu = nn.PReLU()
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -173,6 +173,8 @@ class ResNetFace(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.bn4 = nn.BatchNorm2d(512)
         self.dropout = nn.Dropout()
+        # todo ここの数字を動的に変えたい
+        # self.fc5 = nn.Linear(512 * 13 * 13, 512)
         self.fc5 = nn.Linear(512 * 16 * 16, 512)
         self.bn5 = nn.BatchNorm1d(512)
 
@@ -223,13 +225,13 @@ class ResNetFace(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers):
+    def __init__(self, block, layers, chanel_num=1):
         self.inplanes = 64
         super(ResNet, self).__init__()
-        # self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-        #                        bias=False)
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1,
+        self.conv1 = nn.Conv2d(chanel_num, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
+        # self.conv1 = nn.Conv2d(chanel_num, 64, kernel_size=3, stride=1, padding=1,
+        #                        bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -283,61 +285,61 @@ class ResNet(nn.Module):
         return x
 
 
-def resnet18(pretrained=False, **kwargs):
+def resnet18(chanel_num=1, pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    model = ResNet(BasicBlock, [2, 2, 2, 2], chanel_num, **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
     return model
 
 
-def resnet34(pretrained=False, **kwargs):
+def resnet34(chanel_num=1, pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    model = ResNet(BasicBlock, [3, 4, 6, 3], chanel_num, **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
     return model
 
 
-def resnet50(pretrained=False, **kwargs):
+def resnet50(chanel_num=1, pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    model = ResNet(Bottleneck, [3, 4, 6, 3], chanel_num, **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return model
 
 
-def resnet101(pretrained=False, **kwargs):
+def resnet101(chanel_num=1, pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    model = ResNet(Bottleneck, [3, 4, 23, 3], chanel_num, **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
 
 
-def resnet152(pretrained=False, **kwargs):
+def resnet152(chanel_num=1, pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
+    model = ResNet(Bottleneck, [3, 8, 36, 3], chanel_num, **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
     return model
 
 
-def resnet_face18(use_se=True, **kwargs):
-    model = ResNetFace(IRBlock, [2, 2, 2, 2], use_se=use_se, **kwargs)
+def resnet_face18(chanel_num=1, use_se=True, **kwargs):
+    model = ResNetFace(IRBlock, [2, 2, 2, 2], chanel_num,  use_se=use_se, **kwargs)
     return model
