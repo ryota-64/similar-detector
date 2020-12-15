@@ -1,4 +1,3 @@
-import json
 from logging import getLogger
 import os
 import pathlib
@@ -65,9 +64,9 @@ def _take_one_or_ret_false(iterator):
 def main():
     # check hire
     raw_data_path = pathlib.Path(opt.raw_data_path)
-    parts_list = [parts_dir for parts_dir in raw_data_path.iterdir() if parts_dir.stem[:1] != '.']
+    parts_list = [parts_dir for parts_dir in raw_data_path.iterdir()
+                  if parts_dir.stem[:1] != '.' and parts_dir.suffix != ".xlsx"]
 
-    label_data = {}
     # get list of data
     error_model_list = []
     for parts_dir in parts_list:

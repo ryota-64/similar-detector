@@ -9,3 +9,4 @@ opencv-python==4.4.0.44
 graphviz
 umap-learn==0.4.6
 plotly==4.12.0
+pyyaml==5.3.1

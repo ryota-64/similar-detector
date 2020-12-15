@@ -38,6 +38,8 @@ class PlateData:
         self.shell_origin = None
         self.shell_origin_normal = None
         self.nodes = None  # set by dynain
+
+        # 参照渡しになっているので、以下の２つのvalueは同じものが入るようになっている
         self.shells = []
         self.shells_dict = None
 
@@ -48,6 +50,14 @@ class PlateData:
             conter_file.columns = ['node_id', 'conter_value', 'x', 'y', 'z']
             # print('conter {} nodes '.format(conter_file.values.shape))
         return conter_file
+
+    def __sub__(self, other):
+
+        # todo blank_node_file が同一かのチェック
+
+        # todo shell をそれぞれ差分とる
+
+        pass
 
     # def set_dynain_data_old(self, dynain_data):
     #     # ['shell_id', 'normal_vector', 'x', 'y', 'z'] の形式 でshellの個数分の配列をshell_origin として保存
@@ -156,42 +166,6 @@ class PlateData:
             return pickup_shell[0].output()
         else:
             return np.zeros_like(self.shells[0].output())
-
-    def output_labels(self):
-
-        label_dict = {}
-        print(self.conters_data.keys())
-        for conter_name, conter in self.conters_data.items():
-            label_dict[conter_name] = int(bool(self._contain_error(conter_name, conter)))
-
-        print(label_dict)
-        return label_dict
-
-    @staticmethod
-    def _contain_error(name, conter):
-        if name == '2.板厚減少率CSV':
-            error_num = PlateData.check_conter_value(conter, '>', 0.08)
-            error_num += PlateData.check_conter_value(conter, '<', -0.1)
-            print(error_num)
-
-            return error_num
-
-        # elif name == '3.シワコンターCSV':
-        #     error_num = PlateData.check_conter_value(conter, '>', 0.05)
-        #     error_num += PlateData.check_conter_value(conter, '<', -0.05)
-        #     print(error_num)
-        # return error_num
-
-        else:
-            return 0
-
-    @staticmethod
-    def check_conter_value(conter, operator, value):
-        if operator == '>':
-            sum_of_error = (conter['conter_value'] > value).sum()
-        elif operator == '<':
-            sum_of_error = (conter['conter_value'] < value).sum()
-        return sum_of_error
 
     def fig2array(self, fig):
 
