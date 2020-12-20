@@ -10,3 +10,4 @@ RUN useradd -m -u ${UID} prepare
 USER ${UID}
 WORKDIR /prepare
 
+ENV PYTHONPATH ${PYTHONPATH}:/prepare/similar-detector/

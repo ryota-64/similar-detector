@@ -41,8 +41,8 @@ raw_data
 
 その後、データ準備用のdocker コンテナ内を作成
 ```bash
-docker build -t prepare_data ./prepare_data/docker/
-docker run -v $PWD:/prepare/similar-detector -it prepare_data bash
+docker build -t prepare ./prepare_data/docker/
+docker run -v $PWD:/prepare/similar-detector -it prepare bash
 ```
 in docker container (image from prepare_data/docker/Dockerfile)
 ```bash 
@@ -66,18 +66,13 @@ python -m visdom.server
 python train.py
 ```
 
-##  evaluate
-分類精度の確認
-```bash
-python estimate.py
-```
-t-SNE,Umapでのmetrics learningの可視化
-```bash
-python show_t_sne.py
-```
 
-## 実験に使ったmulti label datasets 
+## 実験に使ったmulti label datasets
+celebA
+ 
 https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8
+
+
 ## using openmax to predict
 
 1 secondly train to make full connected layer

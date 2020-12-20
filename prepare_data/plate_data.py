@@ -104,8 +104,8 @@ class PlateData:
         y_max = float(max(self.blank_node_file['y']))
         y_min = float(min(self.blank_node_file['y']))
         print(x_max, x_min, y_max, y_min)
-        x_range = np.linspace(x_min, x_max, output_size[0])
-        y_range = np.linspace(y_min, y_max, output_size[1])
+        x_range = np.linspace(min(x_min, y_min), max(x_max, y_max), output_size[0])
+        y_range = np.linspace(min(x_min, y_min), max(x_max, y_max), output_size[1])
         xx, yy = np.meshgrid(x_range, y_range)
         worker_num = multi.cpu_count() - 2
         print('worker num: ', worker_num)
