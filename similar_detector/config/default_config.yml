@@ -1,5 +1,8 @@
 #custom_config: './config/custom_config.yml'
-custom_config: "../data/DataSets/merged_data_A/custom_config.yml"
+#custom_config: "../data/DataSets/merged_data_A/custom_config.yml"
+#custom_config: "../data/DataSets/dtypeH/custom_config.yml"
+custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
+
 
 # model config
 env: 'default'

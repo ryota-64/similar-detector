@@ -18,7 +18,7 @@ class Config(object):
 
         self.input_shape = (config_json.pop('input_shape_channel'),
                             config_json.pop('input_shape_x'), config_json.pop('input_shape_y'))
-        print(config_json)
+        # print(config_json)
         for key, value in config_json.items():
             setattr(self, key, value)
 
