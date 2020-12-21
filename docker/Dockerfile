@@ -11,7 +11,9 @@ COPY requirements.txt /workspace/
 RUN pip install -r requirements.txt
 RUN pip install Cython
 RUN pip install libmr
-WORKDIR /workspace
+WORKDIR /workspace/similar-detector
+ENV PATH ${PATH}:/home/detector/.local/bin/
+ENV PYTHONPATH ${PYTHONPATH}:/workspace/similar-detector/
 #COPY libMR/ /workspace/libMR
 #WORKDIR /workspace/libMR
 #RUN ["/bin/bash", "-c", "./compile.sh"]

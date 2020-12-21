@@ -63,49 +63,52 @@ def _take_one_or_ret_false(iterator):
 
 def main():
     # check hire
-    raw_data_path = pathlib.Path(opt.raw_data_path)
-    parts_list = [parts_dir for parts_dir in raw_data_path.iterdir()
-                  if parts_dir.stem[:1] != '.' and parts_dir.suffix != ".xlsx"]
+    row_data_path_list = opt.raw_data_path_list
+    print(row_data_path_list)
+    for row_data_path in row_data_path_list:
+        raw_data_path = pathlib.Path(row_data_path)
+        parts_list = [parts_dir for parts_dir in raw_data_path.iterdir()
+                      if parts_dir.stem[:1] != '.' and parts_dir.suffix != ".xlsx"]
 
-    # get list of data
-    error_model_list = []
-    for parts_dir in parts_list:
+        # get list of data
+        error_model_list = []
+        for parts_dir in parts_list:
 
-        for model_dir in parts_dir.iterdir():
-            if model_dir.stem[:1] != '.':
-                try:
-                    file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
-                    output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
-                    if output_path.exists():
-                        continue
+            for model_dir in parts_dir.iterdir():
+                if model_dir.stem[:1] != '.':
+                    try:
+                        file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
+                        output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
+                        if output_path.exists():
+                            continue
 
-                    print(model_dir)
-                    dynain_path = model_dir.joinpath('{}_dynain'.format(model_dir.stem))
-                    conter_paths = [model_dir.joinpath('{}_{}.csv'.format(model_dir.stem, i+1)) for i in range(4)]
-                    blank_node_path = model_dir.joinpath('{}_blank.csv'.format(model_dir.stem))
-                    dynain_data = DynainData(dynain_path)
-                    plate_data = PlateData(blank_node_path)
-                    plate_data.set_dynain_data(dynain_data)
-                    for conter in conter_paths:
-                        plate_data.set_conter(conter.name, conter)
-                    output = plate_data.output(output_size=(opt.input_shape[1], opt.input_shape[2]))
-                    # extract data and save it
-                    # todo 一部をtest用のデータセットに保存する
-                    file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
-                    output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
-                    if not output_path.exists() and not output_path.parents[0].is_dir():
-                        output_path.parents[0].mkdir(parents=True, exist_ok=True)
-                    print('save to {}'.format(output_path))
-                    np.save(output_path, output)
+                        print(model_dir)
+                        dynain_path = model_dir.joinpath('{}_dynain'.format(model_dir.stem))
+                        conter_paths = [model_dir.joinpath('{}_{}.csv'.format(model_dir.stem, i+1)) for i in range(4)]
+                        blank_node_path = model_dir.joinpath('{}_blank.csv'.format(model_dir.stem))
+                        dynain_data = DynainData(dynain_path)
+                        plate_data = PlateData(blank_node_path)
+                        plate_data.set_dynain_data(dynain_data)
+                        for conter in conter_paths:
+                            plate_data.set_conter(conter.name, conter)
+                        output = plate_data.output(output_size=(opt.input_shape[1], opt.input_shape[2]))
+                        # extract data and save it
+                        # todo 一部をtest用のデータセットに保存する
+                        file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
+                        output_path = pathlib.Path(os.path.join(opt.data_sets_dir, opt.dir_name, 'train/models', file_name))
+                        if not output_path.exists() and not output_path.parents[0].is_dir():
+                            output_path.parents[0].mkdir(parents=True, exist_ok=True)
+                        print('save to {}'.format(output_path))
+                        np.save(output_path, output)
 
-                except Exception as e:
-                    error_model_list.append(str(model_dir))
-                    print('error occurred', model_dir, e)
-    #
-    # pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
-    # with open(opt.train_list, mode='w')as f:
-    #     json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
-    print(len(error_model_list))
+                    except Exception as e:
+                        error_model_list.append(str(model_dir))
+                        print('error occurred', model_dir, e)
+        #
+        # pathlib.Path(opt.train_list).parents[0].mkdir(parents=True, exist_ok=True)
+        # with open(opt.train_list, mode='w')as f:
+        #     json.dump({'data': label_data}, f, ensure_ascii=False, indent=2)
+        print(len(error_model_list))
 
 
 if __name__ == '__main__':

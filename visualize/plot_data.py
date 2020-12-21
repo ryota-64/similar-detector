@@ -2,6 +2,8 @@ import enum
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 # from matplotlib.colors import Normalize
 
 
@@ -25,26 +27,23 @@ class VisualizeData:
     @staticmethod
     def plot_processed_data(data_path, channel=None):
         a = np.load(data_path)
-        print(a.shape)
 
         axes = {}
         if channel is None:
             fig = plt.figure(figsize=(20, 10))
             for i in range(a.shape[2]):
-                axes[i] = fig.add_subplot(2, 3, i + 1)
+                axes[i] = fig.add_subplot(2, 3, i + 1, title=str(ConterName(i)).split('.')[1])
                 data = a[:, :, i]
                 axes[i].imshow(data)
             fig.show()
 
         else:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
 
             data = a[:, :, channel]
             plt.imshow(data)
             plt.colorbar()
+            plt.title(str(ConterName(channel)).split('.')[1])
             plt.show()
-
 
             #
             # # mesh = ax.imshow(data)

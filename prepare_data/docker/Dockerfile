@@ -8,6 +8,6 @@ RUN useradd -m -u ${UID} prepare
 
 # 作成したユーザーに切り替える
 USER ${UID}
-WORKDIR /prepare
+WORKDIR /prepare/similar-detector
 
 ENV PYTHONPATH ${PYTHONPATH}:/prepare/similar-detector/

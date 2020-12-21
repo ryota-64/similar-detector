@@ -42,7 +42,7 @@ raw_data
 その後、データ準備用のdocker コンテナ内を作成
 ```bash
 docker build -t prepare ./prepare_data/docker/
-docker run -v $PWD:/prepare/similar-detector -it prepare bash
+docker run -v $PWD:/prepare/similar-detector -it -name prepare prepare bash
 ```
 in docker container (image from prepare_data/docker/Dockerfile)
 ```bash 
@@ -55,16 +55,47 @@ python prepare_data.py
 
 gpu環境で
 ```bash
+cd similar-detector
 docker build -t similar ./docker
-docker run --gpus all -t -v $PWD:/workspace/similar-detector --shm-size=4gb --name similar -d -p 8097:8097 similar  bash
+docker run --gpus all -t -v $PWD:/workspace/similar-detector --shm-size=4gb --name similar -d -p 8097:8097 -p 8888:8888 similar  bash
 docker exec -it similar bash
 ```
+
+port 8888はjupyter用、 8097はvisdom用
+
 docker 内で
 ```bash
 # 学習状況のプロット用（必要なければconfigでdisply = False でoff)
 python -m visdom.server
 python train.py
 ```
+
+# visualize(jupyter使用)(for remote server)
+
+## 学習モデルを使う時
+ ### 1 ssh でremote serverに入る
+
+    例
+    ```bash
+    ssh msel@welding_server 
+    ```
+ ### 2 学習用docker に入る
+ ```commandline
+docker exec -it similar bash
+```
+
+### 3 jupyterを立ち上げる
+```commandline
+jupyter notebook --ip=0.0.0.0
+```
+
+### 4 access to http://remote:8888/
+最初はjupyter立ち上げ時に出るtokenを使用
+
+
+[http://welding_server:8888/](http://welding_server:8888/)
+
+##### --ip はリモートアクセスでクロスドメインゆえ、指定 
 
 
 ## 実験に使ったmulti label datasets

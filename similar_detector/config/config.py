@@ -30,7 +30,7 @@ class Config(object):
 
         # self.device = self.device if torch.cuda.is_available() else 'cpu'
         self.data_sets_dir = os.path.join(root_path, self.data_sets_dir)
-        self.raw_data_path = os.path.join(root_path, self.raw_data_path)
+        self.raw_data_path_list = [os.path.join(root_path, raw_data_path) for raw_data_path in self.raw_data_path_list]
 
         # preapare_data.pyの時とで場合分け
         self.dir_name = self.dir_name_for_create_data_sets if for_prepare_data_creation else self.dir_name
