@@ -88,7 +88,7 @@ def main():
                     plate_data.set_dynain_data(dynain_data)
                     for conter in conter_paths:
                         plate_data.set_conter(conter.name, conter)
-                    output = plate_data.output(output_size=(256, 256))
+                    output = plate_data.output(output_size=(opt.input_shape[1], opt.input_shape[2]))
                     # extract data and save it
                     # todo 一部をtest用のデータセットに保存する
                     file_name = '{}_{}_plate_data.npy'.format(parts_dir.stem, model_dir.stem)
