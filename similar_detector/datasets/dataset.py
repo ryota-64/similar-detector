@@ -7,6 +7,8 @@ import numpy as np
 from torch.utils import data
 from torchvision import transforms as T
 
+from .transforms import RandomRotationTensor
+
 
 class DataSet(data.Dataset):
 
@@ -36,7 +38,7 @@ class DataSet(data.Dataset):
                 T.Resize(self.input_shape[1:])] if self.data_is_image else []
             compose_list.extend([
                 T.ToTensor(),
-                # T.Grayscale(),
+                RandomRotationTensor([-45,45]),
                 normalize,
                 # T.RandomErasing(),
                 ])
@@ -49,7 +51,7 @@ class DataSet(data.Dataset):
 
             compose_list.extend([
                 T.ToTensor(),
-                # T.Grayscale(),
+                RandomRotationTensor([-45, 45]),
                 normalize,
                 # T.RandomErasing(),
             ])
