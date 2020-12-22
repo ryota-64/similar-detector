@@ -6,7 +6,7 @@ import yaml
 
 class Config(object):
 
-    def __init__(self, root_path=pathlib.Path(__file__).parents[1], for_prepare_data_creation=False):
+    def __init__(self, root_path=pathlib.Path(__file__).parents[1]):
         default_config_path = pathlib.Path(__file__).parent.joinpath('./default_config.yml')
         with open(default_config_path, mode='r')as f:
             config_json = yaml.load(f)
@@ -27,13 +27,13 @@ class Config(object):
         self.lr_decay = 0.95  # when val_loss increase, lr : lr*lr_decay
         self.weight_decay = 5e-4
 
-
+        self.origin_data_sets = os.path.join(root_path, self.origin_data_sets) # for diff_type
         # self.device = self.device if torch.cuda.is_available() else 'cpu'
         self.data_sets_dir = os.path.join(root_path, self.data_sets_dir)
         self.raw_data_path_list = [os.path.join(root_path, raw_data_path) for raw_data_path in self.raw_data_path_list]
 
         # preapare_data.pyの時とで場合分け
-        self.dir_name = self.dir_name_for_create_data_sets if for_prepare_data_creation else self.dir_name
+        # self.dir_name = self.dir_name_for_create_data_sets if for_prepare_data_creation else self.dir_name
         self.criteria_list = os.path.join(self.data_sets_dir, self.dir_name, 'criteria_list.txt')
         self.train_root = os.path.join(self.data_sets_dir, self.dir_name, 'train/models')
         self.train_list = os.path.join(self.data_sets_dir, self.dir_name, 'train/train_labels.json')

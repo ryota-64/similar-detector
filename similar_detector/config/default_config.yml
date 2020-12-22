@@ -1,7 +1,8 @@
+custom_config: ''
 #custom_config: './config/custom_config.yml'
 #custom_config: "../data/DataSets/merged_data_A/custom_config.yml"
 #custom_config: "../data/DataSets/dtypeH/custom_config.yml"
-custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
+#custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
 
 
 # model config
@@ -44,9 +45,10 @@ raw_data_path_list:
 
 # data dir config
 data_sets_dir: '../data/DataSets/'
+origin_data_sets: "" # for ML_model_type = 'diff'
 # dir_name : 'sample_data' # celebA
 dir_name: 'dtypeG'
-dir_name_for_create_data_sets: 'dtypeG'
+#dir_name_for_create_data_sets: 'dtypeG'
 data_is_image: False
 
 

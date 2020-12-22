@@ -42,7 +42,7 @@ raw_data
 その後、データ準備用のdocker コンテナ内を作成
 ```bash
 docker build -t prepare ./prepare_data/docker/
-docker run -v $PWD:/prepare/similar-detector -it -name prepare prepare bash
+docker run -v $PWD:/prepare/similar-detector -it --name prepare prepare bash
 ```
 in docker container (image from prepare_data/docker/Dockerfile)
 ```bash 

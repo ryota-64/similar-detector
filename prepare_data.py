@@ -10,7 +10,7 @@ from prepare_data.derivative_path_model import DerivativePathModel, convert_exce
 import openpyxl
 logger = getLogger(__name__)
 
-opt = Config(for_prepare_data_creation=True)
+opt = Config()
 
 
 # 必要なデータがあるかのcheck
@@ -72,8 +72,6 @@ def main():
             print('this config is diff model. please check config.')
             break
         raw_data_path = pathlib.Path(row_data_path)
-        parts_list = [parts_dir for parts_dir in raw_data_path.iterdir()
-                      if parts_dir.stem[:1] != '.' and parts_dir.suffix != ".xlsx"]
 
         excel_paths = raw_data_path.glob('*.xlsx')
         for excel_path in excel_paths:

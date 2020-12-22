@@ -11,8 +11,11 @@ class DerivativePathModel:
         counter_measure_dict = {}
         for model_row in counter_measure_array:
             # エクセルの名前がうまく作られていないので、応急処置として導入
+            # a001_FM1の場合　{ "a001" : "a001_FM1"}
             for_data_dict[str(model_row[0].split('_')[0])] = str(model_row[0])
-            path_dict[str(model_row[0].split('_')[0])] = path_dict[str(model_row[1].split('_')[0])].joinpath(model_row[0]) \
+
+            # a001_FM1の場合　{ "a002" : base_model_path like "a001"}
+            path_dict[str(model_row[0].split('_')[0])] = path_dict[str(model_row[1].split('_')[0])].joinpath(model_row[0].split('_')[0]) \
                 if model_row[1] else pathlib.Path(model_row[0].split('_')[0])
             counter_measure_dict[str(model_row[0].split('_')[0])] = counter_measure_dict[str(model_row[1].split('_')[0])] + model_row[2:] \
                 if model_row[1] else model_row[2:]

@@ -1,5 +1,6 @@
 from prepare_data.derivative_path_model import DerivativePathModel, convert_excel2array
 import pathlib
+import os
 
 import openpyxl
 import numpy as np
@@ -13,11 +14,11 @@ def load_and_calc_diff(base_path, derivative_path):
 
     ret = derivative - base
 
-    return np.concatenate(ret, base[:, :, 0], axis=2)
+    return np.concatenate([ret, base[:, :, 0:1]], axis=2)
 
 
 if __name__ == '__main__':
-    opt = Config(for_prepare_data_creation=True)
+    opt = Config()
     if opt.ML_model_type == 'diff':
         raw_data_path_list = opt.raw_data_path_list
         print(raw_data_path_list)
@@ -46,7 +47,7 @@ if __name__ == '__main__':
                         dataset_path = list(raw_data_path.glob('**/{}'.format(path)))
                         # if len(list(dataset_path))!=7:
                         if len(dataset_path) == 0:
-                            print(path)
+                            print('csvのファイルがないパス: {}'.format(path))
                         #     print(list(dataset_path))
                         for _path in dataset_path:
                             if _path.is_dir():
@@ -57,14 +58,32 @@ if __name__ == '__main__':
 
                     for base_path in detected_paths:
                         for deri_path in detected_paths:
-                            try:
-                                diff_label = derivative_paths.calc_diff(base_path.name, deri_path.name)
-                                # todo make dataset path
-
-                                diff_data = load_and_calc_diff(base_path, deri_path)
-                                print(diff_data.shape)
-                            except ValueError:
+                            if base_path == deri_path:
                                 continue
+                            try:
+                                try:
+                                    diff_label = derivative_paths.calc_diff(base_path.name.split('_')[0],
+                                                                            deri_path.name.split('_')[0])
+                                except ValueError as e:
+                                    # print(e)
+                                    continue
+                                    # todo make dataset path
+                                base_file_name = '{}_{}_plate_data.npy'.format(sheet_name, base_path.stem)
+                                base_path_from_dateset = pathlib.Path(
+                                    os.path.join(opt.origin_data_sets, base_file_name))
+                                deriva_file_name = '{}_{}_plate_data.npy'.format(sheet_name, deri_path.stem)
+                                deri_path_from_dateset = pathlib.Path(
+                                    os.path.join(opt.origin_data_sets, deriva_file_name))
+                                diff_data = load_and_calc_diff(base_path_from_dateset, deri_path_from_dateset)
+
+                            except FileNotFoundError as e:
+                                # print(e)
+                                continue
+                            out_put_path = pathlib.Path(opt.data_sets_dir).joinpath(opt.dir_name).joinpath(
+                                'train/models').joinpath('{}_{}_diff_data.npy'.format(deri_path.name, base_path.name))
+                            out_put_path.parents[0].mkdir(exist_ok=True, parents=True)
+                            # print('save to {}'.format(out_put_path))
+                            np.save(out_put_path, diff_data)
                     # todo データのパスのリストを作成、それをfor ループで回して,大丈夫なやつだけ、調べる
                     # todo そのあと保存
 
