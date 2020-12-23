@@ -299,17 +299,17 @@ def main():
     print(b.shape)
     print(b)
 
-    acc = accuracy(pred_list, labels)
-    acc_individual = accuracy_indivisual(pred_list, labels)
-    print(acc / len(pred_list))
-
-    for key, value in acc_individual.items():
-        print('key: {}  {}/{}  {}%\n'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
-
-    print('only_train_label\n')
-    for key, value in acc_individual.items():
-        if key in centroid_map:
-            print(
-                'key: {}  {}/{}  {}%'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
-            accs.update(value.count(True) / len(value), len(value))
-    print(accs)
+    # acc = accuracy(pred_list, labels)
+    # acc_individual = accuracy_indivisual(pred_list, labels)
+    # print(acc / len(pred_list))
+    #
+    # for key, value in acc_individual.items():
+    #     print('key: {}  {}/{}  {}%\n'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
+    #
+    # print('only_train_label\n')
+    # for key, value in acc_individual.items():
+    #     if key in centroid_map:
+    #         print(
+    #             'key: {}  {}/{}  {}%'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
+    #         accs.update(value.count(True) / len(value), len(value))
+    # print(accs)

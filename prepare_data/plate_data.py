@@ -221,7 +221,11 @@ class PlateData:
         self.conters_data[conter_name] = self._read_conter_file(conter_csv_path)
         # print(self.conters_data[conter_name].values.shape)
         for row in self.conters_data[conter_name].values:
-            self.shells_dict[str(int(row[0]))].conter_values[conter_name] = row[1]
+            try:
+                self.shells_dict[str(int(row[0]))].conter_values[conter_name] = row[1]
+            except:
+                continue
+
         # todo shellにconter値を入れる
 
     # pandas のraw dataのconterを返す

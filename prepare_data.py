@@ -8,6 +8,7 @@ from similar_detector.config import Config
 from prepare_data import PlateData, DynainData
 from prepare_data.derivative_path_model import DerivativePathModel, convert_excel2array
 import openpyxl
+
 logger = getLogger(__name__)
 
 opt = Config()
@@ -128,13 +129,15 @@ def main():
                             output_path.parents[0].mkdir(parents=True, exist_ok=True)
                         print('save to {}'.format(output_path))
                         np.save(output_path, output)
+                    except FileNotFoundError:
+                        continue
 
-                    except Exception as e:
+                    except KeyError as e:
                         error_model_list.append(str(model_dir))
                         print('error occurred', model_dir, e)
-
-
-
+                    except ValueError as k:
+                        print(k)
+                        continue
 
 
         #

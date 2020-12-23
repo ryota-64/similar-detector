@@ -24,7 +24,6 @@ class DataSet(data.Dataset):
         data_arrays = np.random.permutation(data_arrays)
         print('len {}'.format(len(data_arrays)))
         self.data_arrays = [path for path in data_arrays if pathlib.Path(path).exists()]
-        print('len {}'.format(len(self.data_arrays)))
         self.label_dict = labels_json['data']
 
         # normalize = T.Normalize(mean=[0.5, 0.5, 0.5],
@@ -39,7 +38,7 @@ class DataSet(data.Dataset):
             compose_list.extend([
                 T.ToTensor(),
                 RandomRotationTensor([-45,45]),
-                normalize,
+                # normalize,
                 # T.RandomErasing(),
                 ])
             self.transforms = T.Compose(compose_list)
@@ -52,7 +51,7 @@ class DataSet(data.Dataset):
             compose_list.extend([
                 T.ToTensor(),
                 RandomRotationTensor([-45, 45]),
-                normalize,
+                # normalize,
                 # T.RandomErasing(),
             ])
             self.transforms = T.Compose(compose_list)

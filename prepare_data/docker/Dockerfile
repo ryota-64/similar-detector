@@ -11,3 +11,4 @@ USER ${UID}
 WORKDIR /prepare/similar-detector
 
 ENV PYTHONPATH ${PYTHONPATH}:/prepare/similar-detector/
+ENV PATH $PATH:/home/prepare/.local/bin

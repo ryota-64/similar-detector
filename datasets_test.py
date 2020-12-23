@@ -21,9 +21,16 @@ if __name__ == '__main__':
 
     for ii, train_batch in enumerate(trainloader):
         data_input, label = train_batch
+
+
         print(data_input.shape, label)
-        for i in range(data_input[0].shape[0]):
-            layer = np.array(to_img(data_input[0][i:i+1, :, :]))
-            print(layer.shape)
-            plt.imshow(layer)
-            plt.show()
+
+        layer = np.array(to_img(data_input[0][1:2, :, :]))
+        print(layer.shape)
+        plt.imshow(layer)
+        plt.show()
+        # for i in range(data_input[0].shape[0]):
+        #     layer = np.array(to_img(data_input[0][i:i+1, :, :]))
+        #     print(layer.shape)
+        #     plt.imshow(layer)
+        #     plt.show()

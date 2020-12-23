@@ -7,10 +7,10 @@ from prepare_data.plate_data import DynainData, PlateData
 logger = getLogger(__name__)
 
 if __name__ == '__main__':
-    blank_node_path = 'data/raw_data/20201204/1_HINGE_RF_170801/d10/d10_blank.csv'
+    blank_node_path = 'data/raw_data/20201218/A1_150_Bhinge/a001_FM1/a001_FM1_blank.csv'
     # conter_paths = get_conter_csv(dynain_path)
     # print(dynain_path, blank_node_path, conter_paths)
-    dynain_path = 'data/raw_data/20201204/1_HINGE_RF_170801/d10/d10_dynain'
+    dynain_path = 'data/raw_data/20201218/A1_150_Bhinge/a001_FM1/a001_FM1_dynain'
     model_dir = pathlib.Path('data/raw_data/20201204/1_HINGE_RF_170801/d10/')
     conter_paths = [model_dir.joinpath('{}_{}.csv'.format(model_dir.stem, i + 1)) for i in range(4)]
     dynain_data = DynainData(dynain_path)
