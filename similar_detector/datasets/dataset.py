@@ -68,7 +68,10 @@ class DataSet(data.Dataset):
         # img_data = img_data.convert('L')
         data_array = self.transforms(data_array)
         label = np.array([value for value in self.label_dict[pathlib.Path(data_array_path).name].values()])
-        return data_array.float(), label
+        if self.phase =='train':
+            return data_array.float(), label
+        else:
+            return data_array.float(), label, data_array_path
 
     def __len__(self):
         return len(self.data_arrays)

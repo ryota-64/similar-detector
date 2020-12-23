@@ -252,7 +252,7 @@ def main():
     acc_individual = {}
     data_path_list = []
     for ii, test_batch in enumerate(tqdm(test_loader)):
-        data_input, label = test_batch
+        data_input, label, data_path = test_batch
         # data_path_list.append(data_path)
         data_input = data_input.to(device)
         label = label.to(device).long()
@@ -271,6 +271,7 @@ def main():
 
         labels.extend(label)
         pred_list.extend(preds)
+        data_path_list.extend(data_path)
     # 正解ラベルと照合
 
     confusion_matrix = multilabel_confusion_matrix(labels, pred_list)
@@ -292,6 +293,14 @@ def main():
     #             acc +=1
     #
     #     print(acc /14, data_path[0][-25:])
+    print(np.concatenate([labels, pred_list], axis=1).shape)
+    print(np.array(data_path_list)[:, np.newaxis].shape)
+    out_data = np.array(
+        np.concatenate([np.array(data_path_list)[:, np.newaxis], np.concatenate([labels, pred_list], axis=1)], axis=1),
+        dtype=object)
+
+    np.save('./result/{}_result.npy'.format(opt.dir_name), out_data)
+
 
     a = np.array(labels)
     print(a.shape)

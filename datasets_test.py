@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
         print(data_input.shape, label)
 
-        layer = np.array(to_img(data_input[0][1:2, :, :]))
+        layer = np.array(to_img(data_input[0][4:5, :, :]))
         print(layer.shape)
         plt.imshow(layer)
         plt.show()

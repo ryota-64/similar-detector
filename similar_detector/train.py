@@ -182,7 +182,7 @@ def train(args):
         eval_speed = []
 
         for ii, val_batch in enumerate(val_loader):
-            data_input, label = val_batch
+            data_input, label, data_path = val_batch
             data_input = data_input.to(device)
             label = label.to(device).long()
             feature = model(data_input)
