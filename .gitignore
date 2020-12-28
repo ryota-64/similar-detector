@@ -12,3 +12,7 @@ estimate_visualize/*
 *.jpeg
 *.png
 *.npy
+
+*.ipynb
+result/*
+*.csv
