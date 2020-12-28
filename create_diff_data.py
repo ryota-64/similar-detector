@@ -65,9 +65,9 @@ if __name__ == '__main__':
                     # print(derivative_paths.for_data_dict.values())
                     detected_paths = []
                     # print(len(list(derivative_paths.path_dict.keys())))
-                    for path in derivative_paths.for_data_dict.values():
+                    for path in derivative_paths.path_dict.values():
 
-                        dataset_path = list(raw_data_path.glob('**/{}'.format(path)))
+                        dataset_path = list(raw_data_path.glob('**/{}'.format(path.stem)))
                         # if len(list(dataset_path))!=7:
                         if len(dataset_path) == 0:
                             print('csvのファイルがないパス: {}'.format(path))
@@ -85,8 +85,8 @@ if __name__ == '__main__':
                                 continue
                             try:
                                 try:
-                                    diff_label = derivative_paths.calc_diff(base_path.name.split('_')[0],
-                                                                            deri_path.name.split('_')[0])
+                                    diff_label = derivative_paths.calc_diff(base_path.name,
+                                                                            deri_path.name)
                                 except ValueError as e:
                                     # print(e)
                                     continue

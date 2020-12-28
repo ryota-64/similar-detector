@@ -92,9 +92,9 @@ def main():
                 # print(derivative_paths.for_data_dict.values())
                 detected_paths = []
                 # print(len(list(derivative_paths.path_dict.keys())))
-                for path in derivative_paths.for_data_dict.values():
-
-                    dataset_path = list(raw_data_path.glob('**/{}'.format(path)))
+                for path in derivative_paths.path_dict.values():
+                    print(path)
+                    dataset_path = list(raw_data_path.glob('**/{}'.format(path.stem)))
                     # if len(list(dataset_path))!=7:
                     if len(dataset_path) == 0:
                         print(path)
@@ -130,11 +130,13 @@ def main():
                         print('save to {}'.format(output_path))
                         np.save(output_path, output)
                     except FileNotFoundError:
+                        print('file not found')
                         continue
 
                     except KeyError as e:
                         error_model_list.append(str(model_dir))
                         print('error occurred', model_dir, e)
+                        continue
                     except ValueError as k:
                         print(k)
                         continue

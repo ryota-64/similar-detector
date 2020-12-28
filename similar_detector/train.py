@@ -57,6 +57,12 @@ def train(args):
                                              shuffle=True,
                                              num_workers=opt.num_workers)
 
+    test_dataset = DataSet(opt.train_root, opt.test_list, phase='test', input_shape=opt.input_shape,
+                          data_is_image=opt.data_is_image)
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                             batch_size=opt.test_batch_size,
+                                             num_workers=opt.num_workers)
+
     print('{} train iters per epoch:'.format(len(trainloader)))
 
     if opt.loss == 'focal_loss':
@@ -208,6 +214,35 @@ def train(args):
         if opt.display:
             visualizer.display_current_results(i, np.mean(eval_loss), name='val_loss')
             visualizer.display_current_results(i, np.mean(eval_acc), name='val_acc')
+
+        test_acc = []
+        test_loss = []
+        test_speed = []
+
+        for ii, test_batch in enumerate(test_loader):
+            data_input, label, data_path = test_batch
+            data_input = data_input.to(device)
+            label = label.to(device).long()
+            feature = model(data_input)
+            if args.train_second or opt.metric == 'linear':
+                output = metric_fc(feature)
+            else:
+                output = metric_fc(feature, label)
+            loss = criterion(output, label.float())
+
+            output = output.data.cpu().numpy()
+            # output = np.argmax(output, axis=1)
+            output = output > 0.5
+            label = label.data.cpu().numpy()
+            acc = np.mean((output == label).astype(int))
+            speed = opt.print_freq / (time.time() - start)
+            test_acc.extend([acc] * len(label))
+            test_loss.extend([loss.item()] * len(label))
+            test_speed.extend([speed] * len(label))
+        time_str = time.asctime(time.localtime(time.time()))
+        if opt.display:
+            visualizer.display_current_results(i, np.mean(test_loss), name='test_loss')
+            visualizer.display_current_results(i, np.mean(test_acc), name='test_acc')
 
 
 def main():
