@@ -11,6 +11,26 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
+from visualize.plot_data import ConterName
+
+
+class MaxConter:
+    SHAPE = 0.5
+    THICKNESS_REDUCTION_RATE = 10
+    WRINKLES = 0.13
+    VON_MISES = 2000
+    STRAIN = 0.3
+    BASE_SHAPE = 0.5
+
+
+class MinConter:
+    SHAPE = - 0.5
+    THICKNESS_REDUCTION_RATE = -10
+    WRINKLES = - 0.13
+    VON_MISES = 0
+    STRAIN = 0
+    BASE_SHAPE = - 0.5
+
 
 class PlateData:
     def __init__(self, blank_node_csv):
@@ -22,16 +42,7 @@ class PlateData:
             node_file = node_file_raw
             node_file.columns = ['node_id', 'coord', 'x', 'y', 'z', 'unnamed']
             node_file = node_file.astype({'x': float, 'y': float, 'z': float})
-        # except Exception:
-        #     encording = 'ISO-8859-1'
-        #     with open(blank_node_csv, encoding=encording) as f:
-        #         print(blank_node_csv)
-        #         f.readline()
-        #         node_file_raw = pd.read_csv(f, encoding=encording)
-        #         node_file = node_file_raw[3:]
-        #         print(node_file.shape)
-        #         node_file.columns = ['node_id', 'x', 'y', 'z']
-        #         node_file = node_file.astype({'x': float, 'y': float, 'z': float})
+
         print('blank {} nodes'.format(node_file.values.shape))
         self.blank_node_file = node_file
         self.conters_data = {}
@@ -119,40 +130,17 @@ class PlateData:
         print('a')
 
         return np.array(ret_array)
-        # for i in ret_array:
-        #     for j in i:
-        #         print(j)
-        #
-        #
-        #
-        # # 形状の情報
-        # # conterの情報
-        # #         print(self.node_file)
-        # print(self.conters_data.keys())
-        # ret_array = self.get_normal_vector_fig(figsize)
-        #
-        # for key in self.conters_data.keys():
-        #     conter_array = self.get_conter_fig(key)
-        #     print(conter_array.shape)
-        #     ret_array = np.concatenate([ret_array, conter_array], axis=2)
-        #
-        # print(ret_array.shape)
-        # return ret_array
 
-    # def output_old(self, figsize=(16, 16)):
-    #     # 形状の情報
-    #     # conterの情報
-    #     #         print(self.node_file)
-    #     print(self.conters_data.keys())
-    #     ret_array = self.get_normal_vector_fig(figsize)
-    #
-    #     for key in self.conters_data.keys():
-    #         conter_array = self.get_conter_fig(key)
-    #         print(conter_array.shape)
-    #         ret_array = np.concatenate([ret_array, conter_array], axis=2)
-    #
-    #     print(ret_array.shape)
-    #     return ret_array
+    def output_fig(self, figsize=(16, 16)):
+
+        output_arrays = self.get_curvature_fig(figsize)[:, :, np.newaxis]
+        for conter_key in self.conters_data.keys():
+            print(output_arrays.shape)
+            output_arrays = np.concatenate(
+                [output_arrays, self.get_conter_fig(conter_key, figsize=figsize)[:, :, np.newaxis]], axis=2)
+
+        output_arrays = np.concatenate([output_arrays, self.get_blank_fig(figsize=figsize)[:, :, np.newaxis]], axis=2)
+        return np.array(output_arrays)
 
     # 出力したい画像のピクセルの位置のshellを取ってきて、各値を出力する（x,yを指定して取ってくる)
     def pickup_shell_and_output(self, x, y):
@@ -167,7 +155,7 @@ class PlateData:
         else:
             return np.zeros_like(self.shells[0].output())
 
-    def fig2array(self, fig):
+    def fig2array(self, fig, color=False):
 
         buf = io.BytesIO()  # インメモリのバイナリストリームを作成
         # matplotlibから出力される画像のバイナリデータをメモリに格納する. todo set in config
@@ -176,7 +164,10 @@ class PlateData:
         img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)  # メモリからバイナリデータを読み込み, numpy array 形式に変換
         buf.close()  # ストリームを閉じる(flushする)
         img = cv2.imdecode(img_arr, 1)  # 画像のバイナリデータを復元する
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # cv2.imread() はBGR形式で読み込むのでRGBにする.
+        if color:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # cv2.imread() はBGR形式で読み込むのでRGBにする.
+        else:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return img
 
     def get_normal_vector_fig(self, figsize=(16, 16)):
@@ -184,10 +175,6 @@ class PlateData:
         value = shell_t[1] / 2 + 0.5
         x = shell_t[2]
         y = shell_t[3]
-
-        print(x[200], y[200], value[200])
-        value[200] = [0, 0, 0]
-        print(x[200], y[200], value[200])
 
         fig = plt.figure(figsize=figsize, linewidth=0, )
 
@@ -199,19 +186,64 @@ class PlateData:
         plt.close(fig)
         return ret_array
 
-    def get_conter_fig(self, conter_name, figsize=(16, 16)):
+    def get_blank_fig(self, figsize=(16, 16)):
+        x = []
+        y = []
+        for shell in self.shells:
+            x.append((shell.blank_area[0] + shell.blank_area[1]) / 2)
+            y.append((shell.blank_area[2] + shell.blank_area[3]) / 2)
+        plt.style.use('dark_background')
 
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_axes((0, 0, 1, 1))
+
+        ax.axis("off")
+        # ax.scatter(x, y, c=curvature_data, vmin=np.min(curvature_data), vmax=np.max(curvature_data), cmap='binary')
+        ax.scatter(x, y)
+        ax.set_aspect('equal')
+        ret_array = self.fig2array(fig)
+        plt.close(fig)
+        return ret_array
+
+    def get_curvature_fig(self, figsize=(16, 16)):
+
+        curvature_data = []
+        x = []
+        y = []
+        for shell in self.shells:
+            curvature_data.append(shell.gaussian_curvature)
+            x.append((shell.blank_area[0] + shell.blank_area[1]) / 2)
+            y.append((shell.blank_area[2] + shell.blank_area[3]) / 2)
+        plt.style.use('dark_background')
+        fig = plt.figure(figsize=figsize)
+
+        ax = fig.add_axes((0, 0, 1, 1))
+        ax.axis("off")
+        # ax.scatter(x, y, c=curvature_data, vmin=np.min(curvature_data), vmax=np.max(curvature_data), cmap='binary')
+        ax.scatter(x, y, c=curvature_data, vmin=MinConter.SHAPE, vmax=MaxConter.SHAPE, cmap='gray')
+        ax.set_aspect('equal')
+        ret_array = self.fig2array(fig)
+        plt.close(fig)
+        return ret_array
+
+    def get_conter_fig(self, conter_name, figsize=(16, 16)):
+        print(conter_name)
+        print(conter_name.split('.')[0].split('_')[-1])
+        conter_enum_name = str(ConterName(int(conter_name.split('.')[0].split('_')[-1]))).split('.')[1]
+        print(conter_enum_name)
         conter_data = self.get_plate_conter(conter_name)
         # todo conterの値を画像に反映する必要がある
         value = conter_data[1]
         x = conter_data[2]
         y = conter_data[3]
 
+        plt.style.use('dark_background')
         fig = plt.figure(figsize=figsize)
 
         ax = fig.add_axes((0, 0, 1, 1))
         ax.axis("off")
-        ax.scatter(x, y, c=value, vmin=np.min(value), vmax=np.max(value))
+        # ax.scatter(x, y, c=value, vmin=np.min(value), vmax=np.max(value), cmap='binary')
+        ax.scatter(x, y, c=value, vmin=getattr(MinConter, conter_enum_name), vmax=getattr(MaxConter, conter_enum_name), cmap='gray')
         ax.set_aspect('equal')
         ret_array = self.fig2array(fig)
         plt.close(fig)
@@ -246,8 +278,8 @@ class PlateData:
         data = [self.conters_data[conter_name]['node_id'],
                 self.conters_data[conter_name]['conter_value'].values.astype('float64'),
                 [np.average(
-                        [float(node[2]) for node in
-                         self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
+                    [float(node[2]) for node in
+                     self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
                     range(len(self.conters_data[conter_name]['node_id']))],
 
                 [np.average(
@@ -258,7 +290,7 @@ class PlateData:
                     [float(node[4]) for node in
                      self.shells_dict[str(int(self.conters_data[conter_name]['node_id'][i]))].blank_nodes]) for i in
                     range(len(self.conters_data[conter_name]['node_id']))],
-        ]
+                ]
         return data
 
     # PlateDataのインスタンス同士でのnormal_vectorの引き算

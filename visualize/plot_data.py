@@ -13,7 +13,7 @@ class ConterName(enum.Enum):
     WRINKLES = enum.auto()
     VON_MISES = enum.auto()
     STRAIN = enum.auto()
-    BASA_SHAPE = enum.auto()
+    BASE_SHAPE = enum.auto()
 
 
 class VisualizeData:
