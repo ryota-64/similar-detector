@@ -1,0 +1,84 @@
+#custom_config: ''
+#custom_config: './config/custom_config.yml'
+#custom_config: "../data/DataSets/merged_data_A/custom_config.yml"
+#custom_config: "../data/DataSets/merged_data_B/custom_config.yml"
+custom_config: "../data/DataSets/merged_data_C/custom_config.yml"
+#custom_config: "../data/DataSets/dtypeH/custom_config.yml"
+#custom_config: "../data/DataSets/dtypeI/custom_config.yml"
+#custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
+#custom_config: "../data/DataSets/imgTypeA/custom_config.yml"
+
+
+
+# model config
+env: 'default'
+# backbone : 'resnet18'
+backbone: 'resnet_face18'
+# backbone : 'resnet50'
+# classify : 'softmax' # 使ってない？
+num_classes: 14
+# metric : 'arc_margin'
+metric: 'linear'
+# easy_margin : False
+easy_margin: True
+use_se: True
+# use_se : False
+# chose loss function
+# loss : 'focal_loss'
+# loss : 'cross_entropy'
+# for multi target?
+loss: "BCEWithLogitsLoss"
+# transfer_train : True
+transfer_train: False
+base_weight_path: '../checkpoints/resnet_face18_celebA_1/resnet18_20.pth'
+
+# (channel_num, x, y)
+#    input_shape : (5, 256, 256)
+input_shape_channel: 5
+input_shape_x: 256
+input_shape_y: 256
+
+
+# optimizer : 'sgd'
+optimizer: 'Adam'
+
+# for prepare data
+# raw_data_path : 'data/raw_data/20200807'
+# raw_data_path : '../data/raw_data/20201023'
+raw_data_path_list:
+    - '../data/raw_data/20201204'
+
+# data dir config
+data_sets_dir: '../data/DataSets/'
+origin_data_sets: "" # for ML_model_type = 'diff'
+# dir_name : 'sample_data' # celebA
+dir_name: 'dtypeG'
+#dir_name_for_create_data_sets: 'dtypeG'
+data_is_image: False
+
+
+checkpoints_path: '../checkpoints/resnet_face18_dtypeG/'  # resnet_face18, linear
+test_metric_fc_path: '../checkpoints/resnet_face18_dtypeG/metric_fc_20.pth'
+test_model_path: '../checkpoints/resnet_face18_dtypeG/resnet_face18_20.pth'
+
+# other config
+display: True
+# display : False
+finetune: True
+# finetune : False
+use_gpu: True  # use GPU or not
+# use_gpu : False  # use GPU or not
+gpu_id: '0, 1'
+# gpu_id : '0'
+num_workers: 4  # how many workers for loading data
+print_freq: 10  # print info every N batch
+
+debug_file: 'tmp/debug'  # if os.path.exists(debug_file): enter ipdb
+result_file: 'result.csv'
+
+max_epoch: 100
+
+save_interval: 5
+
+train_batch_size: 4  # batch size
+test_batch_size: 4
