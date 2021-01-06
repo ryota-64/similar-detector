@@ -118,7 +118,8 @@ class PlateData:
         x_range = np.linspace(min(x_min, y_min), max(x_max, y_max), output_size[0])
         y_range = np.linspace(min(x_min, y_min), max(x_max, y_max), output_size[1])
         xx, yy = np.meshgrid(x_range, y_range)
-        worker_num = multi.cpu_count() - 2
+        # worker_num = multi.cpu_count() - 2
+        worker_num = 20
         print('worker num: ', worker_num)
         p = Pool(worker_num)
 
@@ -243,7 +244,8 @@ class PlateData:
         ax = fig.add_axes((0, 0, 1, 1))
         ax.axis("off")
         # ax.scatter(x, y, c=value, vmin=np.min(value), vmax=np.max(value), cmap='binary')
-        ax.scatter(x, y, c=value, vmin=getattr(MinConter, conter_enum_name), vmax=getattr(MaxConter, conter_enum_name), cmap='gray')
+        ax.scatter(x, y, c=value, vmin=getattr(MinConter, conter_enum_name), vmax=getattr(MaxConter, conter_enum_name),
+                   cmap='gray')
         ax.set_aspect('equal')
         ret_array = self.fig2array(fig)
         plt.close(fig)
@@ -470,9 +472,10 @@ class Shell:
         return np.array([gaussian_curvature, *conter_value_list], dtype=np.float32)
 
     def calc_shell_gaussian_curvature(self, nodes):
-        gaussian_curvature = np.average([node.gaussian_curvature for node in nodes])
-        if np.isnan(gaussian_curvature):
-            gaussian_curvature = 0
+        gaussian_curvature = np.average(
+            [node.gaussian_curvature for node in nodes if node.gaussian_curvature is not None])
+        # if np.isnan(gaussian_curvature):
+        #     gaussian_curvature = 0
         return gaussian_curvature
 
     def set_blank_nodes(self, blank_nodes):
@@ -504,8 +507,23 @@ class DynainData:
         #         initial_atress_index = df[df['*KEYWORD']=='*INITIAL_STRESS_SHELL'].index.values[0]
 
         node_matrix = matrix[asterisk_indexes[0] + 1:asterisk_indexes[1]]
+        deff_margin = 1
+        raw_nodes = []
+        raw_nodes_data = {str(int(node_data[0][0:8])): self.split_node_str(node_data[0])[1:4]
+                          for node_data in node_matrix}
+        node_id_max = max([int(node_data[0][0:8]) for node_data in node_matrix])
+        print(node_id_max, len(node_matrix))
+        for i in range(node_id_max):
+            key = str(i + 1)
+            if key in raw_nodes_data.keys():
+                raw_nodes.append(raw_nodes_data[key])
 
-        self.raw_nodes = [self.split_node_str(node_data[0])[1:4] for node_data in node_matrix]
+            else:
+                print(key)
+                raw_nodes.append([0, 0, 0])
+        self.raw_nodes = raw_nodes
+        print(raw_nodes[34])
+        # self.raw_nodes = [self.split_node_str(node_data[0])[1:4] for node_data in node_matrix]
         shell_data = matrix[asterisk_indexes[1] + 1:asterisk_indexes[2]]
         self.raw_shells = [self.split_shell_str_c(shell_data[i][0]) for i in range(0, len(shell_data), 2)]
         # pymeshを使って、曲率をだす
@@ -518,8 +536,8 @@ class DynainData:
         triangle_mesh.add_attribute("vertex_mean_curvature")
         nodes_gaussian_curvature = triangle_mesh.get_attribute("vertex_mean_curvature")
 
-        self.nodes = {str(int(node_data[0][0:8])): Node(*self.split_node_str(node_data[0]), gaussian_curvature)
-                      for node_data, gaussian_curvature in zip(node_matrix, nodes_gaussian_curvature)}
+        self.nodes = {str(int(node_data[0][0:8])): Node(*self.split_node_str(node_data[0]), nodes_gaussian_curvature[int(node_data[0][0:8]) -1 ])
+                      for node_data in node_matrix}
         self.shells = [Shell(*self.split_shell_str_a(shell_data[i][0]), *self.split_shell_str_b(shell_data[i + 1][0]))
                        for i in range(0, len(shell_data), 2)]
 

@@ -30,13 +30,14 @@ class DerivativePathModel:
 
         # if derivative_path is not based on base_path, raise ValueError
         relative_path = derivative_path.relative_to(base_path)
-        deep_level = 0
-        for i in range(len(derivative_path.parents)):
-            if base_path == derivative_path.parents[i]:
-                deep_level = i + 1
+        deep_level = len(relative_path.parents)
+        print(deep_level)
+        # for i in range(len(derivative_path.parents)):
+        #     if base_path == derivative_path.parents[i]:
+        #         deep_level = i + 1
         #
-        # if opt.limit_diff and deep_level > :
-        #     raise ValueError
+        if deep_level > 7:
+            raise ValueError
 
         relative_counter_measure = self.counter_measure_dict[derivative] - self.counter_measure_dict[base]
         return relative_counter_measure

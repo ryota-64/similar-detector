@@ -35,12 +35,12 @@ class VisualizeData:
             for i in range(a.shape[2]):
                 axes[i] = fig.add_subplot(2, 3, i + 1, title=str(ConterName(i)).split('.')[1])
                 data = a[:, :, i]
-                if i == 0:
-                    pp = axes[i].imshow(data, vmin=-0.3, vmax=0.3)
-                    fig.colorbar(pp, ax=axes[i], orientation="vertical")
-                else:
-                    pp = axes[i].imshow(data)
-                    fig.colorbar(pp, ax=axes[i], orientation="vertical")
+                # if i == 0:
+                #     pp = axes[i].imshow(data, vmin=-0.3, vmax=0.3)
+                #     fig.colorbar(pp, ax=axes[i], orientation="vertical")
+                # else:
+                pp = axes[i].imshow(data)
+                fig.colorbar(pp, ax=axes[i], orientation="vertical")
             fig.show()
 
         else:
