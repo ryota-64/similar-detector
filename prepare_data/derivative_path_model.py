@@ -42,6 +42,11 @@ class DerivativePathModel:
         relative_counter_measure = self.counter_measure_dict[derivative] - self.counter_measure_dict[base]
         return relative_counter_measure
 
+    @staticmethod
+    def parse_diff_label_for_single_label(diff_label):
+        labels = [str(flag) for flag in diff_label]
+        diff_label_str = ''.join(labels)
+        return diff_label_str
 
 def convert_excel2array(excel_path, column_num=14, sheet_name=None):
     raw_data = pd.read_excel(excel_path, header=1, sheet_name=sheet_name)

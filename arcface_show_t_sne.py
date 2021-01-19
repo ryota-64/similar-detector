@@ -1,15 +1,17 @@
+
 import time
 import os
+
+import numpy as np
 
 import torch
 from torch.utils import data
 from torch.nn import DataParallel
 
-# offline.init_notebook_mode()
 
-from data import DataSet
-from config import Config
-from models import *
+from arcface.datasets import DataSet
+from arcface.config import Config
+from arcface.models import *
 
 from sklearn.manifold import TSNE
 from sklearn import preprocessing
@@ -27,7 +29,7 @@ import plotly.offline as offline
 
 def main():
     opt = Config()
-    if opt.backbone == 'resnet18':
+    if opt.backbone == 'resnet_face18':
         model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
     elif opt.backbone == 'resnet34':
         model = resnet34(opt.input_shape[0])
@@ -35,12 +37,15 @@ def main():
         model = resnet50(opt.input_shape[0])
     else:
         raise TypeError('not match model type')
-
+    model.to(device)
     # load_model(model, opt.test_model_path)
     # if torch.cuda.is_available() and opt.use_gpu == 'cuda':
+    print(opt.use_gpu)
+    print(device)
     if opt.use_gpu:
         model = DataParallel(model)
-        model.load_state_dict(torch.load(opt.test_model_path, map_location=torch.device('cpu')))
+        # model.load_state_dict(torch.load(opt.test_model_path, map_location={'cuda:0': 'cpu'}))
+        model.load_state_dict(torch.load(opt.test_model_path))
     else:
         model.load_state_dict(torch.load(opt.test_model_path, map_location={'cpu': 'cpu'}))
     # model.to(torch.device(device))
@@ -49,7 +54,7 @@ def main():
 
     train_dataset = DataSet(opt.train_root, opt.train_list, phase='train', input_shape=opt.input_shape)
     trainloader = data.DataLoader(train_dataset,
-                                  batch_size=10,
+                                  batch_size=32,
                                   shuffle=True,
                                   num_workers=opt.num_workers)
 
@@ -57,35 +62,38 @@ def main():
 
     test_dataset = DataSet(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
     test_loader = data.DataLoader(test_dataset,
-                                  batch_size=10,
+                                  batch_size=4,
                                   # batch_size=opt.test_batch_size,
                                   shuffle=True,
                                   num_workers=opt.num_workers)
 
+    latent_vecs_list = np.empty((0,512))
+    label_list = np.empty((0))
     for i, test_batch in enumerate(trainloader):
         data_input, label = test_batch
         data_input = data_input.to(device)
-        label = label.to(device).long()
-        print(data_input.shape)
+        # label = label.to(device).long()
         latent_vecs = model(data_input)
+        latent_vecs_list = np.concatenate([latent_vecs_list, latent_vecs.cpu().detach().numpy()])
+        label_list = np.concatenate([label_list, label])
         target = label
         # plot3d_tsne(latent_vecs, target, )
         # show_umap(latent_vecs, target)
-        t_sne(latent_vecs)
+
+    t_sne(latent_vecs_list, label_list)
         # t_sne(latent_vecs, target)
 
-
-
+    latent_vecs_list = np.empty((0, 512))
     for i, test_batch in enumerate(test_loader):
-        data_input, label = test_batch
+        data_input, label, data_path = test_batch
         data_input = data_input.to(device)
         label = label.to(device).long()
-        print(data_input.shape)
         latent_vecs = model(data_input)
+        latent_vecs_list = np.concatenate([latent_vecs_list, latent_vecs.cpu().detach().numpy()])
         target = label
         # plot3d_tsne(latent_vecs, target, )
         # show_umap(latent_vecs, target)
-        t_sne(latent_vecs)
+    t_sne(latent_vecs_list)
         # t_sne(latent_vecs, target)
 
 
@@ -163,8 +171,8 @@ def plot3d_tsne(latent_vecs, target, data_type='test'):
 
 
 def t_sne(latent_vecs, target=None, data_type='test'):
-    latent_vecs = latent_vecs.to("cpu")
-    latent_vecs = latent_vecs.detach().numpy()
+    # latent_vecs = latent_vecs.to("cpu")
+    # latent_vecs = latent_vecs.detach().numpy()
     start_time = time.time()
     latent_vecs_reduced = TSNE(n_components=2, random_state=0).fit_transform(latent_vecs)
     # latent_vecs_reduced = PCA(n_components=2).fit_transform(latent_vecs)
@@ -172,10 +180,11 @@ def t_sne(latent_vecs, target=None, data_type='test'):
                 c=target, cmap='jet')
     plt.colorbar()
     plt.title('t-SNE {}{}'.format(data_type, start_time))
-    plt.savefig('estimate_visualize/t-SNE_{}{}.png'.format(data_type, start_time))
+    plt.savefig('result/tsne/t-SNE_{}{}.png'.format(data_type, start_time))
     interval = time.time() - start_time
     print('t-SNE : {}s'.format(interval))
     plt.show()
+    plt.close()
 
 
 def show_umap(latent_vecs, target, data_type='test'):
@@ -186,7 +195,7 @@ def show_umap(latent_vecs, target, data_type='test'):
     plt.scatter(embedding[:, 0], embedding[:, 1], c=target, cmap='jet')
     plt.colorbar()
     plt.title('umap {}{}'.format(data_type, start_time))
-    plt.savefig('estimate_visualize/umap_{}{}.png'.format(data_type, start_time))
+    plt.savefig('result/umap/umap_{}{}.png'.format(data_type, start_time))
     interval = time.time() - start_time
     print('umap : {}s'.format(interval))
     plt.show()

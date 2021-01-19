@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import pathlib
+import json
 import time
 
 from tqdm import tqdm
@@ -27,7 +28,11 @@ def save_model(model, save_path, name, iter_cnt):
 
 def train(args):
     opt = Config()
-    # opt.num_classes = len(get_train_labels(opt.train_root, opt.criteria_list))
+    print(opt.num_classes)
+    with open(opt.train_list, 'rb') as fd:
+        labels_json = json.load(fd)
+    opt.num_classes = len(labels_json['label_list'])
+    print(opt.num_classes)
 
     if opt.display:
         # import subprocess
@@ -64,13 +69,15 @@ def train(args):
                                              num_workers=opt.num_workers)
 
     print('{} train iters per epoch:'.format(len(trainloader)))
-
+    print('criterion {}'.format(opt.loss))
     if opt.loss == 'focal_loss':
         criterion = FocalLoss(gamma=2)
     elif opt.loss == 'BCEWithLogitsLoss':
         criterion = nn.BCEWithLogitsLoss()
     else:
         criterion = torch.nn.CrossEntropyLoss()
+
+    print(criterion)
 
     if opt.backbone == 'resnet_face18':
         model = resnet_face18(opt.input_shape[0], use_se=opt.use_se)
@@ -105,6 +112,7 @@ def train(args):
             param.requires_grad = False
         model.eval()
     print(model)
+
     if opt.metric == 'add_margin':
         metric_fc = AddMarginProduct(512, opt.num_classes, s=30, m=0.35)
     elif opt.metric == 'arc_margin':
@@ -149,23 +157,23 @@ def train(args):
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
-            loss = criterion(output, label.float())
+
+            loss = criterion(output, label)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
             iters = i * len(trainloader) + ii
 
-            # output = np.argmax(output, axis=1)
-            output = torch.sigmoid(output).data > 0.5
-            output = output.to(torch.float32)
             output = output.data.cpu().numpy()
+            output = np.argmax(output, axis=1)
             label = label.data.cpu().numpy()
             acc = np.mean((output == label).astype(int))
             spend_time = (time.time() - start)
             train_acc.extend([acc] * len(label))
             train_loss.extend([loss.item()] * len(label))
             train_spend.extend([spend_time])
+            time_str = time.asctime(time.localtime(time.time()))
             start = time.time()
         time_str = time.asctime(time.localtime(time.time()))
         print('{} train epoch {}  {} seconds/epoch loss {} acc {}'.format(
@@ -196,12 +204,12 @@ def train(args):
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
-            loss = criterion(output, label.float())
+            loss = criterion(output, label)
 
             output = output.data.cpu().numpy()
-            # output = np.argmax(output, axis=1)
-            output = output > 0.5
+            output = np.argmax(output, axis=1)
             label = label.data.cpu().numpy()
+
             acc = np.mean((output == label).astype(int))
             speed = opt.print_freq / (time.time() - start)
             eval_acc.extend([acc] * len(label))
@@ -228,11 +236,11 @@ def train(args):
                 output = metric_fc(feature)
             else:
                 output = metric_fc(feature, label)
-            loss = criterion(output, label.float())
+            loss = criterion(output, label)
 
             output = output.data.cpu().numpy()
-            # output = np.argmax(output, axis=1)
-            output = output > 0.5
+            output = np.argmax(output, axis=1)
+            # output = output > 0.5
             label = label.data.cpu().numpy()
             acc = np.mean((output == label).astype(int))
             speed = opt.print_freq / (time.time() - start)

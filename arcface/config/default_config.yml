@@ -2,12 +2,13 @@
 #custom_config: './config/custom_config.yml'
 #custom_config: "../data/DataSets/merged_data_A/custom_config.yml"
 #custom_config: "../data/DataSets/merged_data_B/custom_config.yml"
-custom_config: "../data/DataSets/merged_data_C/custom_config.yml"
+#custom_config: "../data/DataSets/merged_data_C/custom_config.yml"
 #custom_config: "../data/DataSets/dtypeH/custom_config.yml"
 #custom_config: "../data/DataSets/dtypeI/custom_config.yml"
 #custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
 #custom_config: "../data/DataSets/imgTypeA/custom_config.yml"
 
+custom_config: "../data/DataSets/arcface/A/custom_config.yml"
 
 
 # model config
@@ -17,24 +18,24 @@ backbone: 'resnet_face18'
 # backbone : 'resnet50'
 # classify : 'softmax' # 使ってない？
 num_classes: 14
-# metric : 'arc_margin'
-metric: 'linear'
+metric : 'arc_margin'
+#metric: 'linear'
 # easy_margin : False
 easy_margin: True
 use_se: True
 # use_se : False
 # chose loss function
 # loss : 'focal_loss'
-# loss : 'cross_entropy'
+loss : 'cross_entropy'
 # for multi target?
-loss: "BCEWithLogitsLoss"
+#loss: "BCEWithLogitsLoss"
 # transfer_train : True
 transfer_train: False
-base_weight_path: '../checkpoints/resnet_face18_celebA_1/resnet18_20.pth'
+base_weight_path: '../checkpoints/arcface/merged_data/C/resnet18_20.pth'
 
 # (channel_num, x, y)
 #    input_shape : (5, 256, 256)
-input_shape_channel: 5
+input_shape_channel: 6
 input_shape_x: 256
 input_shape_y: 256
 
@@ -52,7 +53,7 @@ raw_data_path_list:
 data_sets_dir: '../data/DataSets/'
 origin_data_sets: "" # for ML_model_type = 'diff'
 # dir_name : 'sample_data' # celebA
-dir_name: 'dtypeG'
+dir_name: 'dtypeI'
 #dir_name_for_create_data_sets: 'dtypeG'
 data_is_image: False
 

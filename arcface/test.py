@@ -237,7 +237,7 @@ def main():
     metric_fc.eval()
 
     # data loader todo train_root →　test_rootに (yet to move data to test_root)
-    test_dataset = dataset.DataSet(opt.train_root, opt.test_list, phase='test', input_shape=opt.input_shape,
+    test_dataset = dataset.DataSet(opt.train_root, opt.val_list, phase='test', input_shape=opt.input_shape,
                                    data_is_image=opt.data_is_image)
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=opt.test_batch_size,
@@ -261,10 +261,14 @@ def main():
             output_labels = metric_fc(feature)
         else:
             output_labels = metric_fc(feature, label)
-        preds = torch.sigmoid(output_labels).data > 0.5
-        preds = preds.to(torch.float32)
-        preds = preds.to('cpu').detach().numpy().copy()
-        label = label.to('cpu').detach().numpy().copy()
+        output = output_labels.data.cpu().numpy()
+        output = np.argmax(output, axis=1)
+        label = label.data.cpu().numpy()
+        acc = np.mean((output == label).astype(int))
+        preds = output
+        # preds = preds.to(torch.float32)
+        # preds = preds.to('cpu').detach().numpy().copy()
+        # label = label.to('cpu').detach().numpy().copy()
 
         # print(len(label[0]))
         # print(len(preds[0]))
@@ -281,7 +285,7 @@ def main():
     from sklearn.metrics import precision_score
     from sklearn.metrics import f1_score
     from itertools import chain
-    print('total accuracy: ', accuracy_score(list(chain.from_iterable(labels)), list(chain.from_iterable(pred_list))))
+    print('total accuracy: ', accuracy_score(list(labels), list(pred_list)))
     print('precision score: ', precision_score(labels, pred_list, average='micro'))
     print('recall score: ', recall_score(labels, pred_list, average='micro'))
     print('f1 score: ', f1_score(labels, pred_list, average='micro'))
@@ -293,10 +297,11 @@ def main():
     #             acc +=1
     #
     #     print(acc /14, data_path[0][-25:])
-    print(np.concatenate([labels, pred_list], axis=1).shape)
-    print(np.array(data_path_list)[:, np.newaxis].shape)
+    print(len(labels))
+    print(pred_list[0])
+
     out_data = np.array(
-        np.concatenate([np.array(data_path_list)[:, np.newaxis], np.concatenate([labels, pred_list], axis=1)], axis=1),
+        np.concatenate([np.array(data_path_list)[:,np.newaxis], np.concatenate([np.array(labels)[:,np.newaxis], np.array(pred_list)[:,np.newaxis]], axis=1)], axis=1),
         dtype=object)
 
     np.save('./result/{}_result.npy'.format(opt.dir_name), out_data)

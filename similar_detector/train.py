@@ -118,6 +118,7 @@ def train(args):
         metric_fc = DataParallel(metric_fc)
     metric_fc.to(device)
 
+
     # load weight
     if opt.transfer_train:
         if device == 'cuda':
