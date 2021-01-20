@@ -237,6 +237,76 @@ def main():
     metric_fc.eval()
 
     # data loader todo train_root →　test_rootに (yet to move data to test_root)
+    test_dataset = dataset.DataSet(opt.train_root, opt.train_list, phase='test', input_shape=opt.input_shape,
+                                   data_is_image=opt.data_is_image)
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=opt.test_batch_size,
+                                              shuffle=False,
+                                              num_workers=opt.num_workers)
+
+    accs = AverageMeter()
+    # predicted labels
+    pred_list = []
+    # answer labels
+    labels = []
+    acc_individual = {}
+    data_path_list = []
+    for ii, test_batch in enumerate(tqdm(test_loader)):
+        data_input, label, data_path = test_batch
+        # data_path_list.append(data_path)
+        data_input = data_input.to(device)
+        label = label.to(device).long()
+        feature = model(data_input)
+        if opt.metric == 'linear':
+            output_labels = metric_fc(feature)
+        else:
+            output_labels = metric_fc(feature, label)
+        output = output_labels.data.cpu().numpy()
+        output = np.argmax(output, axis=1)
+        label = label.data.cpu().numpy()
+        acc = np.mean((output == label).astype(int))
+        preds = output
+        # print(len(label[0]))
+        # print(len(preds[0]))
+
+        labels.extend(label)
+        pred_list.extend(preds)
+        data_path_list.extend(data_path)
+    # 正解ラベルと照合
+
+    confusion_matrix = multilabel_confusion_matrix(labels, pred_list)
+    print(np.sum(confusion_matrix, axis=0))
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import recall_score
+    from sklearn.metrics import precision_score
+    from sklearn.metrics import f1_score
+    print('total accuracy: ', accuracy_score(list(labels), list(pred_list)))
+    print('precision score: ', precision_score(labels, pred_list, average='micro'))
+    print('recall score: ', recall_score(labels, pred_list, average='micro'))
+    print('f1 score: ', f1_score(labels, pred_list, average='micro'))
+
+    ret_data = np.zeros((opt.num_classes,opt.num_classes))
+    print(ret_data.shape)
+    for pred, ans in zip(pred_list, labels):
+        ret_data[ans][pred] += 1
+    np.save('./result/{}_result_train.npy'.format(opt.dir_name), ret_data)
+
+
+    out_data = np.array(
+        np.concatenate([np.array(data_path_list)[:, np.newaxis],
+                        np.concatenate([np.array(labels)[:, np.newaxis], np.array(pred_list)[:, np.newaxis]], axis=1)],
+                       axis=1),
+        dtype=object)
+
+    np.save('./result/{}_answer_result_train.npy'.format(opt.dir_name), out_data)
+
+    a = np.array(labels)
+    print(a.shape)
+    b = np.sum(a, axis=0)
+    print(b.shape)
+    print(b)
+
+    # data loader todo train_root →　test_rootに (yet to move data to test_root)
     test_dataset = dataset.DataSet(opt.train_root, opt.val_list, phase='test', input_shape=opt.input_shape,
                                    data_is_image=opt.data_is_image)
     test_loader = torch.utils.data.DataLoader(test_dataset,
@@ -266,12 +336,6 @@ def main():
         label = label.data.cpu().numpy()
         acc = np.mean((output == label).astype(int))
         preds = output
-        # preds = preds.to(torch.float32)
-        # preds = preds.to('cpu').detach().numpy().copy()
-        # label = label.to('cpu').detach().numpy().copy()
-
-        # print(len(label[0]))
-        # print(len(preds[0]))
 
         labels.extend(label)
         pred_list.extend(preds)
@@ -279,7 +343,8 @@ def main():
     # 正解ラベルと照合
 
     confusion_matrix = multilabel_confusion_matrix(labels, pred_list)
-    print(confusion_matrix)
+
+    print(np.sum(confusion_matrix, axis=0))
     from sklearn.metrics import accuracy_score
     from sklearn.metrics import recall_score
     from sklearn.metrics import precision_score
@@ -289,23 +354,21 @@ def main():
     print('precision score: ', precision_score(labels, pred_list, average='micro'))
     print('recall score: ', recall_score(labels, pred_list, average='micro'))
     print('f1 score: ', f1_score(labels, pred_list, average='micro'))
-    #
-    # for label, pred, data_path in zip (labels, pred_list,data_path_list ):
-    #     acc = 0
-    #     for l, p in zip (label, pred):
-    #         if l == p:
-    #             acc +=1
-    #
-    #     print(acc /14, data_path[0][-25:])
-    print(len(labels))
-    print(pred_list[0])
+
+
+    ret_data = np.zeros((opt.num_classes,opt.num_classes))
+    print(ret_data.shape)
+    for pred, ans in zip(pred_list, labels):
+        ret_data[ans][pred] += 1
+    np.save('./result/{}_result_val.npy'.format(opt.dir_name), ret_data)
 
     out_data = np.array(
-        np.concatenate([np.array(data_path_list)[:,np.newaxis], np.concatenate([np.array(labels)[:,np.newaxis], np.array(pred_list)[:,np.newaxis]], axis=1)], axis=1),
+        np.concatenate([np.array(data_path_list)[:, np.newaxis],
+                        np.concatenate([np.array(labels)[:, np.newaxis], np.array(pred_list)[:, np.newaxis]], axis=1)],
+                       axis=1),
         dtype=object)
 
-    np.save('./result/{}_result.npy'.format(opt.dir_name), out_data)
-
+    np.save('./result/{}_answer_result_val.npy'.format(opt.dir_name), out_data)
 
     a = np.array(labels)
     print(a.shape)
@@ -313,17 +376,72 @@ def main():
     print(b.shape)
     print(b)
 
-    # acc = accuracy(pred_list, labels)
-    # acc_individual = accuracy_indivisual(pred_list, labels)
-    # print(acc / len(pred_list))
-    #
-    # for key, value in acc_individual.items():
-    #     print('key: {}  {}/{}  {}%\n'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
-    #
-    # print('only_train_label\n')
-    # for key, value in acc_individual.items():
-    #     if key in centroid_map:
-    #         print(
-    #             'key: {}  {}/{}  {}%'.format(key, value.count(True), len(value), value.count(True) / len(value) * 100))
-    #         accs.update(value.count(True) / len(value), len(value))
-    # print(accs)
+    # data loader todo train_root →　test_rootに (yet to move data to test_root)
+    test_dataset = dataset.DataSet(opt.train_root, opt.test_list, phase='test', input_shape=opt.input_shape,
+                                   data_is_image=opt.data_is_image)
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=opt.test_batch_size,
+                                              shuffle=False,
+                                              num_workers=opt.num_workers)
+
+    accs = AverageMeter()
+    # predicted labels
+    pred_list = []
+    # answer labels
+    labels = []
+    acc_individual = {}
+    data_path_list = []
+    for ii, test_batch in enumerate(tqdm(test_loader)):
+        data_input, label, data_path = test_batch
+        # data_path_list.append(data_path)
+        data_input = data_input.to(device)
+        label = label.to(device).long()
+        feature = model(data_input)
+        if opt.metric == 'linear':
+            output_labels = metric_fc(feature)
+        else:
+            output_labels = metric_fc(feature, label)
+        output = output_labels.data.cpu().numpy()
+        output = np.argmax(output, axis=1)
+        label = label.data.cpu().numpy()
+        acc = np.mean((output == label).astype(int))
+        preds = output
+
+        labels.extend(label)
+        pred_list.extend(preds)
+        data_path_list.extend(data_path)
+    # 正解ラベルと照合
+
+    confusion_matrix = multilabel_confusion_matrix(labels, pred_list)
+    print(np.sum(confusion_matrix, axis=0))
+    # print(confusion_matrix)
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import recall_score
+    from sklearn.metrics import precision_score
+    from sklearn.metrics import f1_score
+    from itertools import chain
+    print('total accuracy: ', accuracy_score(list(labels), list(pred_list)))
+    print('precision score: ', precision_score(labels, pred_list, average='micro'))
+    print('recall score: ', recall_score(labels, pred_list, average='micro'))
+    print('f1 score: ', f1_score(labels, pred_list, average='micro'))
+
+    ret_data = np.zeros((opt.num_classes,opt.num_classes))
+    print(ret_data.shape)
+    for pred, ans in zip(pred_list, labels):
+        ret_data[ans][pred] += 1
+    np.save('./result/{}_result_test.npy'.format(opt.dir_name), ret_data)
+
+    out_data = np.array(
+        np.concatenate([np.array(data_path_list)[:, np.newaxis],
+                        np.concatenate([np.array(labels)[:, np.newaxis], np.array(pred_list)[:, np.newaxis]], axis=1)],
+                       axis=1),
+        dtype=object)
+
+    np.save('./result/{}_answer_result_test.npy'.format(opt.dir_name), out_data)
+
+    a = np.array(labels)
+    print(a.shape)
+    b = np.sum(a, axis=0)
+    print(b.shape)
+    print(b)
+

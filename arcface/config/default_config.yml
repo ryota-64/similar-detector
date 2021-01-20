@@ -8,7 +8,9 @@
 #custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
 #custom_config: "../data/DataSets/imgTypeA/custom_config.yml"
 
-custom_config: "../data/DataSets/arcface/A/custom_config.yml"
+#custom_config: "../data/DataSets/arcface/A/custom_config.yml"
+#custom_config: "../data/DataSets/arcface/B/custom_config.yml"
+custom_config: "../data/DataSets/arcface/C/custom_config.yml"
 
 
 # model config

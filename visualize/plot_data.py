@@ -28,7 +28,7 @@ class VisualizeData:
     @staticmethod
     def plot_processed_data(data_path, channel=None):
         a = np.load(data_path)
-
+        a = np.nan_to_num(a)
         axes = {}
         if channel is None:
             fig = plt.figure(figsize=(20, 10))

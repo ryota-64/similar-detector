@@ -1,4 +1,3 @@
-
 import time
 import os
 
@@ -7,7 +6,6 @@ import numpy as np
 import torch
 from torch.utils import data
 from torch.nn import DataParallel
-
 
 from arcface.datasets import DataSet
 from arcface.config import Config
@@ -20,6 +18,8 @@ import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import plotly.offline as offline
 
+
+# import plotly.graph_objects as go
 
 # offline.init_notebook_mode()
 #
@@ -60,6 +60,13 @@ def main():
 
     # centroid_map = create_centroid(model, trainloader)
 
+    val_dataset = DataSet(opt.train_root, opt.val_list, phase='test', input_shape=opt.input_shape,
+                          data_is_image=opt.data_is_image)
+    val_loader = torch.utils.data.DataLoader(val_dataset,
+                                             batch_size=opt.test_batch_size,
+                                             shuffle=False,
+                                             num_workers=opt.num_workers)
+
     test_dataset = DataSet(opt.test_root, opt.test_list, phase='test', input_shape=opt.input_shape)
     test_loader = data.DataLoader(test_dataset,
                                   batch_size=4,
@@ -67,7 +74,7 @@ def main():
                                   shuffle=True,
                                   num_workers=opt.num_workers)
 
-    latent_vecs_list = np.empty((0,512))
+    latent_vecs_list = np.empty((0, 512))
     label_list = np.empty((0))
     for i, test_batch in enumerate(trainloader):
         data_input, label = test_batch
@@ -80,21 +87,45 @@ def main():
         # plot3d_tsne(latent_vecs, target, )
         # show_umap(latent_vecs, target)
 
-    t_sne(latent_vecs_list, label_list)
-        # t_sne(latent_vecs, target)
+    plotly_t_sne(latent_vecs_list, label_list, data_type='train', dir_type=opt.dir_name.replace('/', '-'))
+    t_sne(latent_vecs_list, label_list, data_type='train', dir_type=opt.dir_name.replace('/', '-'))
+    # t_sne(latent_vecs, target)
 
     latent_vecs_list = np.empty((0, 512))
-    for i, test_batch in enumerate(test_loader):
+    label_list = []
+    for i, test_batch in enumerate(val_loader):
         data_input, label, data_path = test_batch
         data_input = data_input.to(device)
-        label = label.to(device).long()
+        # label = label.to(device).long()
         latent_vecs = model(data_input)
         latent_vecs_list = np.concatenate([latent_vecs_list, latent_vecs.cpu().detach().numpy()])
         target = label
+        label_list.append(label)
         # plot3d_tsne(latent_vecs, target, )
         # show_umap(latent_vecs, target)
-    t_sne(latent_vecs_list)
         # t_sne(latent_vecs, target)
+    label_array = np.concatenate(label_list)
+
+    t_sne(latent_vecs_list, label_array, data_type='val', dir_type=opt.dir_name.replace('/', '-'))
+    plotly_t_sne(latent_vecs_list, label_array, data_type='val', dir_type=opt.dir_name.replace('/', '-'))
+
+    latent_vecs_list = np.empty((0, 512))
+    label_list = []
+    for i, test_batch in enumerate(test_loader):
+        data_input, label, data_path = test_batch
+        data_input = data_input.to(device)
+        # label = label.to(device).long()
+        latent_vecs = model(data_input)
+        latent_vecs_list = np.concatenate([latent_vecs_list, latent_vecs.cpu().detach().numpy()])
+        target = label
+        label_list.append(label)
+        # plot3d_tsne(latent_vecs, target, )
+        # show_umap(latent_vecs, target)
+        # t_sne(latent_vecs, target)
+    label_array = np.concatenate(label_list)
+
+    plotly_t_sne(latent_vecs_list, label_array, data_type='test', dir_type=opt.dir_name.replace('/', '-'))
+    t_sne(latent_vecs_list, label_array, data_type='test', dir_type=opt.dir_name.replace('/', '-'))
 
 
 #
@@ -170,7 +201,20 @@ def plot3d_tsne(latent_vecs, target, data_type='test'):
     offline.plot(fig, filename='estimate_visualize/tsne_example', auto_open=True)
 
 
-def t_sne(latent_vecs, target=None, data_type='test'):
+def plotly_t_sne(latent_vecs, target=None, data_type='test', dir_type=None):
+    latent_vecs_reduced = TSNE(n_components=2, random_state=0).fit_transform(latent_vecs)
+    fig = go.Figure(data=[
+        go.Scatter(x=latent_vecs_reduced[:, 0], y=latent_vecs_reduced[:, 1], mode='markers+text',
+                   marker=dict(colorscale='jet',
+
+                               color=target),
+                   text=target, )
+    ])
+    fig.write_html('result/tsne/t-SNE_{}_{}.html'.format(data_type, dir_type))
+    # fig.show()
+
+
+def t_sne(latent_vecs, target=None, data_type='test', dir_type=None):
     # latent_vecs = latent_vecs.to("cpu")
     # latent_vecs = latent_vecs.detach().numpy()
     start_time = time.time()
@@ -179,8 +223,8 @@ def t_sne(latent_vecs, target=None, data_type='test'):
     plt.scatter(latent_vecs_reduced[:, 0], latent_vecs_reduced[:, 1],
                 c=target, cmap='jet')
     plt.colorbar()
-    plt.title('t-SNE {}{}'.format(data_type, start_time))
-    plt.savefig('result/tsne/t-SNE_{}{}.png'.format(data_type, start_time))
+    plt.title('t-SNE {}_{}'.format(data_type, dir_type))
+    plt.savefig('result/tsne/t-SNE_{}_{}.png'.format(data_type, dir_type))
     interval = time.time() - start_time
     print('t-SNE : {}s'.format(interval))
     plt.show()
