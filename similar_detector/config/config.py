@@ -11,6 +11,9 @@ class Config(object):
         with open(default_config_path, mode='r')as f:
             config_json = yaml.load(f)
         if config_json['custom_config']:
+            print()
+            print(config_json['custom_config'])
+            print()
             with open(os.path.join(root_path, config_json['custom_config']), mode='r')as f1:
                 custom_config = yaml.load(f1)
             for key, value in custom_config.items():

@@ -4,11 +4,17 @@
 #custom_config: "../data/DataSets/merged_data_B/custom_config.yml"
 #custom_config: "../data/DataSets/merged_data_C/custom_config.yml"
 #custom_config: "../data/DataSets/merged_data_D/custom_config.yml"
-custom_config: "../data/DataSets/merged_data_E/custom_config.yml"
+#custom_config: "../data/DataSets/merged_data_E/custom_config.yml"
+#custom_config: "../data/DataSets/merged_data_debug/custom_config.yml"
+#custom_config: "../data/DataSets/singleTypeA/custom_config.yml"
+#custom_config: "../data/DataSets/singleTypeB/custom_config.yml"
+#custom_config: "../data/DataSets/singleTypeC/custom_config.yml"
+#custom_config: "../data/DataSets/singleTypeD/custom_config.yml"
 #custom_config: "../data/DataSets/dtypeH/custom_config.yml"
 #custom_config: "../data/DataSets/dtypeI/custom_config.yml"
 #custom_config: "../data/DataSets/high_quolity_data_A/custom_config.yml"
 #custom_config: "../data/DataSets/imgTypeA/custom_config.yml"
+custom_config: "../data/DataSets/verificationA/custom_config.yml"
 
 
 

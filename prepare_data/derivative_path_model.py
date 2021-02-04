@@ -18,13 +18,15 @@ class DerivativePathModel:
             print(model_row[0])
             path_dict[str(model_row[0])] = path_dict[str(model_row[1])].joinpath(model_row[0]) \
                 if model_row[1] else pathlib.Path(model_row[0])
-            counter_measure_dict[str(model_row[0])] = counter_measure_dict[str(model_row[1])] + model_row[2:] \
-                if model_row[1] else model_row[2:]
+            counter_measure_dict[str(model_row[0])] = counter_measure_dict[str(model_row[1])] + model_row[3:] \
+                if model_row[1] else model_row[3:]
         self.path_dict = path_dict
         # self.for_data_dict = for_data_dict
         self.counter_measure_dict = counter_measure_dict
+        last_model = [model_row[0] for model_row in counter_measure_array if model_row[2] == 1][0]
 
-    def calc_diff(self, base, derivative):
+        self.last_model = str(last_model)
+    def calc_diff(self, base, derivative, verification=False):
         base_path = self.path_dict[base]
         derivative_path = self.path_dict[derivative]
 
@@ -36,7 +38,7 @@ class DerivativePathModel:
         #     if base_path == derivative_path.parents[i]:
         #         deep_level = i + 1
         #
-        if deep_level > 7:
+        if not verification and deep_level > 7:
             raise ValueError
 
         relative_counter_measure = self.counter_measure_dict[derivative] - self.counter_measure_dict[base]
@@ -51,5 +53,5 @@ class DerivativePathModel:
 def convert_excel2array(excel_path, column_num=14, sheet_name=None):
     raw_data = pd.read_excel(excel_path, header=1, sheet_name=sheet_name)
     data = raw_data.fillna(0)
-    data_array = data.values[1:, 1:3 + column_num]
+    data_array = data.values[1:, 1:4 + column_num]
     return data_array
